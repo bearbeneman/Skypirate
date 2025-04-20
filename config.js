@@ -53,8 +53,8 @@ export const KPH_TO_MPH = 0.621371;
 
 // --- Map Marker Default Visibility ---
 export const DEFAULT_MARKER_VISIBILITY_OPEN_SUITABLE = true;   // Show 'Open - Suitable' markers by default?
-export const DEFAULT_MARKER_VISIBILITY_OPEN_UNSUITABLE = false; // Show 'Open - Unsuitable' markers by default?
-export const DEFAULT_MARKER_VISIBILITY_OPEN_UNKNOWN = false;  // Show 'Open - Unknown/Loading' markers by default?
+export const DEFAULT_MARKER_VISIBILITY_OPEN_UNSUITABLE = true; // Show 'Open - Unsuitable' markers by default?
+export const DEFAULT_MARKER_VISIBILITY_OPEN_UNKNOWN = true;  // Show 'Open - Unknown/Loading' markers by default?
 export const DEFAULT_MARKER_VISIBILITY_CLOSED = false;         // Show 'Closed' markers by default?
 
 // Map Defaults
@@ -63,7 +63,7 @@ export const DEFAULT_MAP_ZOOM = 6;
 export const GEOLOCATION_ZOOM = 10; // Zoom level when user location is found
 export const SEARCH_RESULT_ZOOM_LEVEL = 13;
 export const SEARCH_FLYTO_DURATION = 4;
-export const SHOW_KK7_LAYERS_DEFAULT = true;
+export const SHOW_KK7_LAYERS_DEFAULT = false;
 
 export const BASE_MAP_OPTIONS = {
     MAPTILER_VECTOR: false,      // Default: Terrain Vector (MapTiler) - Recommended Default
