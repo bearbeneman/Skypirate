@@ -54,7 +54,7 @@ export let webcamLayer = null; // Export webcamLayer
 
 // API Keys and URLs
 // const STADIA_API_KEY = "391ac7f5-de36-47f4-82d2-de3f29724dab"; // Stadia unused
-const MAPTILER_API_KEY = "acMkeN5HOfi7bPcy7v6j"; // Replace if needed
+const MAPTILER_API_KEY = "07rB4NKfydhIh4wgA8JS"; // Replace if needed
 const MAPTILER_STYLE_URL = "https://api.maptiler.com/maps/0195fc94-0220-79cf-982a-60065ab87b68/style.json"; // Replace if needed
 
 // Attribution function (defined but not used directly in init, keep if needed elsewhere)
