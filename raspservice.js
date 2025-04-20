@@ -2,7 +2,7 @@
 // raspService.js
 import * as state from './state.js';
 import * as config from './config.js';
-import * as raspUi from './raspControls.js'; // To update UI status
+import * as raspUi from './raspcontrols.js'; // To update UI status
 
 // --- NEW: Manage two layers for cross-fading ---
 let currentRaspLayer = null;        // The currently fully visible layer
