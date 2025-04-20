@@ -292,7 +292,7 @@ export function updateSiteForecastCalendar() {
     // --- End Structure Setup ---
 
 
-    // --- Clear/Update based on site validity ---
+    // --- Clear/Update based on site validity --- 
     if (!siteId || !site) {
         // Clear header content
         calendarHeaderSiteName.textContent = ''; // Name is inside leftGroup
@@ -318,9 +318,9 @@ export function updateSiteForecastCalendar() {
 
     // Map Links
     if (siteLat !== null && siteLon !== null) {
-        const googleMapsLogoUrl = '../images/gmaps.png';
-        const what3WordsLogoUrl = '../images/w3w.png';
-        const osMapsLogoUrl = '../images/osmaps.png';
+        const googleMapsLogoUrl = './images/gmaps.png';
+        const what3WordsLogoUrl = './images/w3w.png';
+        const osMapsLogoUrl = './images/osmaps.png';
         const iconStyle = "height: 20px; width: auto; vertical-align: middle; border: none; margin: 0 1px;"; // Adjusted style
 
         const googleMapsUrl = `https://www.google.com/maps?q=${siteLat},${siteLon}`;
