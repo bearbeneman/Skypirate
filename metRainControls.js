@@ -24,7 +24,7 @@ let _map = null;                        // Stores the Leaflet map instance
 const MetRainKeyControl = L.Control.extend({
     options: {
         position: 'bottomright',
-        imageUrl: 'Images/met_rain_key.png', // Ensure this path is correct relative to index.html
+        imageUrl: 'images/met_rain_key.png', // Ensure this path is correct relative to index.html
         altText: 'MET Rain Forecast Key'
     },
 

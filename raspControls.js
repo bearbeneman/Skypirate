@@ -27,7 +27,7 @@ let raspKeyControlInstance = null;
 const RaspKeyControl = L.Control.extend({
     options: {
         position: 'bottomleft', // Position on map
-        imageUrl: 'Images/stars.curr.1200lst.d2.foot.png', // Default image path
+        imageUrl: 'images/stars.curr.1200lst.d2.foot.png', // Default image path
         altText: 'RASP Key'
     },
 
