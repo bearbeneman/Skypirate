@@ -1,0 +1,289 @@
+/* --- timelineWidget.css --- */
+/* Styles specifically for the timeline widget */
+
+/* Base widget styling (can be adjusted to fit overall theme) */
+.timeline-widget {
+    width: 95%; /* Relative width */
+    max-width: 750px; /* Max width for larger screens */
+    padding: 5px 20px 5px; /* Top padding for marker, no horizontal padding here */
+    position: relative; /* Needed for absolute positioning of marker */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.01), 0 1px 3px rgba(0,0,0,0.08);
+    background-color: #eff2f5; /* Dark background */
+    border-radius: 6px;
+    margin-left: auto;  /* Center the widget if its container allows */
+    margin-right: auto; /* Center the widget if its container allows */
+    box-sizing: border-box;
+	margin-bottom: 8px;
+	margin-top: 6px;
+}
+
+/* The floating marker indicating selected time */
+.time-marker {
+    position: absolute;
+    top: 0px; /* Position at the very top */
+    left: 50%; /* Center horizontally */
+    transform: translateX(-50%) translateY(0); /* Fine-tune centering and initial Y */
+    background-color: #f0ad4e; /* Accent color (orange) */
+    color: white;
+    padding: 8px 15px;
+    border-radius: 5px;
+    font-size: 1.1em;
+    font-weight: bold;
+    white-space: nowrap; /* Prevent text wrapping */
+    z-index: 10; /* Ensure it's above the timeline */
+    box-shadow: 0 3px 8px rgba(0,0,0,0.25), 0 1px 2px rgba(0,0,0,0.1);
+    pointer-events: none; /* Allow clicks to pass through */
+    min-width: 120px; /* Ensure enough space for text */
+    text-align: center;
+    transition: transform 0.15s ease-out, opacity 0.15s ease-out; /* Smooth transitions */
+    opacity: 1;
+}
+
+/* Triangle pointer below the marker */
+.time-marker::after {
+    content: '';
+    position: absolute;
+    bottom: -10px; /* Position below the marker box */
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-top: 10px solid #f0ad4e; /* Match marker color */
+    transition: border-top-color 0.1s ease-out;
+    filter: drop-shadow(0 2px 1px rgba(0,0,0,0.15)); /* Subtle shadow */
+}
+
+/* Animation for marker interaction (e.g., click) */
+@keyframes markerInteract {
+  0% { transform: translateX(-50%) translateY(-3px); } /* Slight jump up */
+  100% { transform: translateX(-50%) translateY(0); }
+}
+
+.time-marker.marker-interacting {
+    animation: markerInteract 0.2s ease-out forwards;
+    transition: none; /* Disable transition during animation */
+}
+
+/* Container for the scrollable timeline */
+.timeline-container {
+    color: #e0e0e0; /* Light text color for contrast */
+    overflow-x: scroll; /* Enable horizontal scrolling */
+    overflow-y: hidden; /* Disable vertical scrolling */
+    cursor: grab; /* Indicate draggable */
+    position: relative;
+    border-radius: 3px;
+    /* Hide scrollbar across browsers */
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE/Edge */
+    -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+    box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.2); /* Inner shadow for depth */
+    margin: 0 5px; /* Small horizontal margin inside the widget padding */
+}
+.timeline-container::-webkit-scrollbar {
+    display: none; /* Chrome/Safari/Opera */
+}
+.timeline-container:active {
+    cursor: grabbing; /* Change cursor during drag */
+}
+
+
+/* The actual element that scrolls, holds all days */
+.timeline-scroll {
+    display: flex; /* Lay out days horizontally */
+    align-items: stretch; /* Make day columns same height */
+    width: max-content; /* Allow content to determine width */
+}
+
+/* Spacers at the start and end for centering */
+.timeline-spacer {
+    flex-shrink: 0; /* Prevent spacers from shrinking */
+    padding: 10px 0; /* Match day column vertical padding */
+    /* Width is set dynamically by JavaScript */
+}
+
+/* Styling for each day column */
+.day-column {
+    display: flex;
+    flex-direction: column; /* Stack header and time slots vertically */
+    align-items: center; /* Center header */
+    padding: 10px 5px; /* Vertical and horizontal padding */
+    border-right: 1px solid #5a5a5a; /* Separator line */
+    box-sizing: border-box;
+    flex-shrink: 0; /* Prevent columns from shrinking */
+    transition: background-color 0.2s ease;
+}
+.timeline-scroll .day-column:last-of-type {
+    border-right: none; /* No border on the last day */
+}
+
+/* Day header text (e.g., "Mon 15") */
+.day-header {
+    font-size: 1.5em;
+    font-weight: normal;
+    margin-bottom: 0px;
+    white-space: nowrap;
+    padding: 2px 10px;
+    text-align: center;
+    cursor: pointer; /* Indicate clickable */
+    border-radius: 4px;
+    color: #6c757d;
+    transition: font-size 0.2s ease, color 0.2s ease, background-color 0.15s ease, transform 0.1s ease-out, font-weight 0.2s ease;
+}
+.day-header:hover {
+    color: #f0ad4e;
+    background-color: rgba(255, 255, 255, 0.05); /* Subtle hover background */
+}
+.day-header:active {
+    background-color: rgba(0, 0, 0, 0.1); /* Darker background on click */
+    transform: scale(0.97); /* Slight shrink effect */
+    color: #ccc;
+}
+
+/* Style changes when a day is selected */
+.day-column.selected-day .day-header {
+    color: #f0ad4e; /* Highlight color */
+    font-weight: bold;
+    cursor: default; /* Indicate it's selected, not clickable again */
+}
+.day-column.selected-day .day-header:hover {
+    color: #ffc107; /* Brighter highlight on hover when selected */
+    background-color: transparent; /* Remove hover background if selected */
+}
+
+
+/* Container for the time slots within a day */
+.time-slots {
+    display: flex;
+    justify-content: space-between; /* Distribute slots */
+    width: 100%;
+    gap: 3px; /* Space between slots */
+}
+
+/* Individual time slot (e.g., "14") */
+.time-slot {
+    font-size: 1.1em;
+    color: #6c757d; /* Dimmer text for non-active slots */
+    text-align: center;
+    box-sizing: border-box;
+    padding: 3px 2px;
+    flex-basis: 0; /* Allow slots to grow equally */
+    flex-grow: 1;
+    min-width: 28px; /* Minimum width for readability */
+    transition: color 0.15s ease-out, background-color 0.15s ease-out, transform 0.1s ease-out, box-shadow 0.15s ease-out;
+    border-radius: 3px;
+    cursor: pointer; /* Indicate clickable */
+}
+.time-slot:hover {
+    background-color: rgba(255, 255, 255, 0.1); /* Light background on hover */
+    color: #f0ad4e;
+    transform: scale(1.05); /* Slight grow effect */
+}
+.time-slot:active {
+    background-color: rgba(0, 0, 0, 0.15); /* Darker background on click */
+    transform: scale(0.95); /* Slight shrink effect */
+    color: #f0ad4e;
+}
+
+/* Style changes for the currently active/centered time slot */
+.time-slot.active {
+    color: #f0ad4e; /* White text */
+    font-weight: bold;
+    background-color: rgba(255, 255, 255, 0.15); /* More prominent background */
+    transform: scale(1.6); /* Slight persistent grow */
+    cursor: default; /* Indicate it's active, not clickable again */
+}
+.time-slot.active:hover {
+    background-color: rgba(255, 255, 255, 0.2); /* Slightly lighter on hover when active */
+    transform: scale(1.08); /* Slightly larger grow on hover when active */
+}
+
+
+/* --- Responsive Adjustments --- */
+
+/* Medium screens (tablets) */
+@media (max-width: 768px) {
+    .timeline-widget {
+        padding-top: 20px; /* Slightly less top padding */
+        border-radius: 4px; /* Less rounded corners */
+        max-width: none; /* Allow full width if needed */
+        width: 98%; /* Slightly more width */
+    }
+    .day-header {
+        font-size: 1em; /* Slightly smaller font */
+        padding: 2px 8px;
+        margin-bottom: 6px;
+    }
+    .time-slot {
+        font-size: 0.8em; /* Smaller font */
+        min-width: 25px;
+        padding: 3px 1px;
+    }
+    .time-marker {
+        font-size: 1em; /* Smaller font */
+        padding: 6px 10px;
+        min-width: 110px;
+        top: -5px; /* Adjust vertical position slightly */
+    }
+    .time-marker::after {
+        bottom: -8px; /* Adjust pointer position */
+        border-left-width: 8px;
+        border-right-width: 8px;
+        border-top-width: 8px; /* Smaller pointer */
+    }
+    .time-slots {
+        gap: 2px; /* Less gap */
+    }
+    .day-column {
+        padding: 10px 3px; /* Less horizontal padding */
+        border-right-color: #555;
+    }
+    .timeline-container {
+        margin: 0 3px; /* Less internal margin */
+    }
+}
+
+/* Small screens (phones) */
+@media (max-width: 480px) {
+    .timeline-widget {
+        width: 100%; /* Full width */
+        padding-top: 0px;
+        border-radius: 0; /* No rounded corners */
+        box-shadow: none; /* Remove shadow for edge-to-edge feel */
+        background-color: #f8f9fa; /* Slightly lighter background */
+    }
+    .day-header {
+        font-size: 0.9em;
+        padding: 2px 5px;
+    }
+    .time-slot {
+        font-size: 0.75em;
+        min-width: 22px;
+        padding: 3px 1px;
+    }
+    .time-marker {
+        font-size: 0.9em;
+        padding: 5px 8px;
+        min-width: 100px;
+        top: -8px; /* Further adjustment */
+    }
+    .time-marker::after {
+        bottom: -7px;
+        border-left-width: 7px;
+        border-right-width: 7px;
+        border-top-width: 7px;
+    }
+    .time-slots {
+        gap: 1px; /* Minimal gap */
+    }
+    .day-column {
+        padding: 0px 2px;
+        border-right-color: #525252;
+    }
+    .timeline-container {
+        margin: 0; /* No internal margin */
+        border-radius: 0;
+        box-shadow: inset 0 1px 2px rgba(0,0,0,0.1); /* Lighter inner shadow */
+    }
+}
