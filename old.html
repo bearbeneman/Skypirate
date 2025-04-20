@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Transparency & Blur Test (Fixed Threshold)</title>
+    <style>
+        body { font-family: sans-serif; padding: 10px; }
+        img { border: 1px solid #ccc; max-width: 400px; height: auto; display: block; margin-bottom: 10px; background-color: #eee; /* Fallback bg */}
+        pre { background-color: #f0f0f0; border: 1px solid #ddd; padding: 10px; white-space: pre-wrap; word-wrap: break-word; max-height: 200px; overflow-y: auto; }
+        button { padding: 8px 15px; margin: 10px 0; cursor: pointer; }
+        h2, h3 { margin-top: 15px; margin-bottom: 5px; }
+        .error { color: red; font-weight: bold; }
+
+        /* --- Checkerboard Background --- */
+        .image-container {
+            display: inline-block; /* Needed for background sizing */
+            position: relative;
+            border: 1px solid #aaa;
+            margin-bottom: 10px;
+             /* Checkerboard using conic-gradient */
+            background-image: conic-gradient(#ccc 25%, #eee 25% 50%, #ccc 50% 75%, #eee 75%);
+            background-size: 20px 20px; /* Size of the squares */
+        }
+        .image-container img {
+            display: block; /* Remove extra space below image */
+            border: none; /* Remove border from image itself */
+            background-color: transparent; /* Ensure image bg doesn't hide checkerboard */
+            max-width: 100%; /* Ensure image fits container */
+            height: auto;
+            margin-bottom: 0; /* Remove margin from image */
+        }
+        /* --- End Checkerboard --- */
+
+    </style>
+</head>
+<body>
+
+    <h1>Test Image White Background Removal & Blur (Fixed Threshold)</h1>
+    <p>Uses a fixed threshold (RGB >= 227) to make white pixels transparent and applies a 1px blur.</p>
+    <p><strong>Important:</strong> Check the browser's developer console (F12) for errors, especially CORS errors.</p>
+
+    <hr>
+
+    <h3>1. Original Image</h3>
+    <p>URL: <span id="imageUrlDisplay"></span></p>
+    <div class="image-container">
+        <img id="originalImage" alt="Original Image Loading...">
+    </div>
+
+
+    <hr>
+
+    <h3>2. Process</h3>
+    <button id="processButton">Process Image</button>
+    <pre id="statusLog">Status: Click process button...</pre>
+
+    <hr>
+
+    <h3>3. Processed Image (on Checkerboard)</h3>
+     <div class="image-container">
+        <img id="processedImage" alt="Processed image will appear here">
+     </div>
+
+
+    <script>
+        // --- Configuration ---
+        const originalImageUrl = 'https://pub-12b531149cba4064bc7b820709c68157.r2.dev/precip_20250413_210000_UTC.png';
+        const fixedThreshold = 227; // Hardcoded threshold
+        const blurAmount = '1px';   // Hardcoded blur amount
+        // ---------------------
+
+        const originalImageEl = document.getElementById('originalImage');
+        const processedImageEl = document.getElementById('processedImage');
+        const processButton = document.getElementById('processButton');
+        const statusLogEl = document.getElementById('statusLog');
+        const imageUrlDisplayEl = document.getElementById('imageUrlDisplay');
+
+        // --- Helper to log messages ---
+        function logMessage(message, isError = false) {
+            console.log(message); // Log to console as well
+            const entry = document.createElement('div');
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            if (isError) {
+                entry.classList.add('error');
+            }
+            statusLogEl.insertBefore(entry, statusLogEl.firstChild); // Prepend
+        }
+
+        // --- The Core Processing Function (Fixed Threshold + Blur) ---
+        function processImageForTransparencyAndBlur(imageUrl) {
+            logMessage(`Starting processing for: ${imageUrl}`);
+            logMessage(`Using fixed threshold: ${fixedThreshold}, Blur: ${blurAmount}`);
+
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                img.crossOrigin = "Anonymous"; // Request CORS headers
+
+                img.onload = () => {
+                    logMessage(`Image loaded successfully (Width: ${img.naturalWidth}, Height: ${img.naturalHeight})`);
+                    let canvas = document.createElement('canvas');
+                    let ctx = canvas.getContext('2d', { willReadFrequently: true });
+
+                    canvas.width = img.naturalWidth;
+                    canvas.height = img.naturalHeight;
+
+                    logMessage("Drawing image to canvas...");
+                    try {
+                        ctx.drawImage(img, 0, 0);
+
+                        logMessage("Getting pixel data for transparency...");
+                        let imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                        let data = imageData.data;
+                        logMessage(`Processing ${data.length / 4} pixels for transparency...`);
+
+                        let pixelsMadeTransparent = 0;
+                        for (let i = 0; i < data.length; i += 4) {
+                            let r = data[i];
+                            let g = data[i + 1];
+                            let b = data[i + 2];
+
+                            // Check if pixel meets the fixed threshold
+                            if (r >= fixedThreshold && g >= fixedThreshold && b >= fixedThreshold) {
+                                data[i + 3] = 0; // Make transparent
+                                pixelsMadeTransparent++;
+                            }
+                            // Optional: else { data[i + 3] = 255; } // Make non-white opaque
+                        }
+
+                        logMessage(`Transparency processing complete. ${pixelsMadeTransparent} pixels made transparent.`);
+                        logMessage("Putting transparency-modified data back...");
+                        ctx.putImageData(imageData, 0, 0);
+
+                        // --- Apply Blur ---
+                        logMessage(`Applying ${blurAmount} blur...`);
+                        ctx.filter = `blur(${blurAmount})`;
+                        // Redraw the (now partially transparent) canvas onto itself *with* the filter active
+                        // We draw the *canvas itself* back onto the context
+                        ctx.drawImage(canvas, 0, 0);
+                        ctx.filter = 'none'; // Reset filter
+                        logMessage("Blur applied.");
+                        // --- End Blur ---
+
+                        logMessage("Generating final data URL...");
+                        const dataUrl = canvas.toDataURL('image/png');
+                        logMessage("Data URL generated successfully.");
+                        resolve(dataUrl);
+
+                    } catch (error) {
+                        logMessage(`Error during canvas processing: ${error.name} - ${error.message}`, true);
+                         if (error.name === 'SecurityError') {
+                             logMessage("----> SECURITY ERROR <----", true);
+                             logMessage("This likely means the R2 bucket is missing CORS headers.", true);
+                             reject(new Error(`CORS error processing image: ${error.message}`));
+                         } else {
+                             logMessage("An unexpected canvas error occurred.", true);
+                             reject(error);
+                         }
+                    } finally {
+                         // Clean up canvas
+                         canvas.width = 0; canvas.height = 0; canvas = null; ctx = null;
+                    }
+                };
+
+                img.onerror = (err) => {
+                    logMessage(`Error loading image from URL: ${imageUrl}`, true);
+                    reject(new Error(`Failed to load image: ${imageUrl}`));
+                };
+
+                logMessage("Setting image src to start loading...");
+                img.src = imageUrl;
+            });
+        }
+
+        // --- Event Listeners ---
+        processButton.addEventListener('click', async () => {
+            logMessage("Process button clicked.");
+            processedImageEl.src = ""; // Clear previous result
+            processedImageEl.alt = "Processing...";
+            statusLogEl.innerHTML = ''; // Clear log
+            logMessage("Attempting to process image...");
+
+            try {
+                // Call the processing function (no thresholds needed)
+                const dataUrl = await processImageForTransparencyAndBlur(originalImageUrl);
+                logMessage("Processing finished. Setting processed image source.", false);
+                processedImageEl.src = dataUrl;
+                processedImageEl.alt = "Processed Image";
+            } catch (error) {
+                logMessage(`Processing failed: ${error.message}`, true);
+                processedImageEl.alt = "Processing Failed";
+            }
+        });
+
+        // --- Initial Setup ---
+        imageUrlDisplayEl.textContent = originalImageUrl;
+        originalImageEl.src = originalImageUrl; // Load the original image
+        originalImageEl.onerror = () => {
+            logMessage(`Failed to load original image: ${originalImageUrl}`, true);
+            originalImageEl.alt = "Original Image Failed to Load";
+        }
+
+        logMessage("Test page ready. Click process button.");
+
+    </script>
+
+</body>
+</html>

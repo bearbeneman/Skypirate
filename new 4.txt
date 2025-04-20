@@ -1,0 +1,271 @@
+// windParticleLayer.js
+
+// Check if L (Leaflet) is loaded
+if (typeof L === 'undefined') {
+  throw new Error('Leaflet must be loaded first.');
+}
+
+L.WindParticleLayer = L.Layer.extend({
+
+    options: {
+        pane: 'overlayPane', // Put it in the overlay pane
+        particleCount: 2000,
+        speedFactor: 1.0,
+        fadeAmount: 0.05, // Trail opacity
+        lineWidth: 1.0,
+        // Add any other default options here
+    },
+
+    initialize: function (options) {
+        L.setOptions(this, options);
+        this._particles = [];
+        this._animationFrameId = null;
+    },
+
+    onAdd: function (map) {
+        this._map = map;
+
+        // Create canvas element
+        this._canvas = L.DomUtil.create('canvas', 'leaflet-wind-particle-layer');
+        this._canvas.style.position = 'absolute'; // Critical for Leaflet panes
+        this._canvas.style.pointerEvents = 'none'; // Don't block map interactions
+        this._ctx = this._canvas.getContext('2d');
+
+        // Add canvas to the specified pane
+        this.getPane().appendChild(this._canvas);
+
+        // Link options to internal state (make sure they are initialized)
+        this._particleCount = this.options.particleCount;
+        this._speedFactor = this.options.speedFactor;
+        this._fadeAmount = this.options.fadeAmount;
+        this._particleLineWidth = this.options.lineWidth;
+
+
+        // Initialize particle system
+        this._resizeCanvas();
+        this._createParticles();
+
+        // Bind map events
+        map.on('viewreset', this._reset, this); // Handles zoom changes
+        map.on('moveend', this._reset, this);   // Handles panning
+
+        // Start animation
+        this._startAnimation();
+    },
+
+    onRemove: function (map) {
+        // Stop animation
+        this._stopAnimation();
+
+        // Unbind map events
+        map.off('viewreset', this._reset, this);
+        map.off('moveend', this._reset, this);
+
+        // Remove canvas from DOM
+        L.DomUtil.remove(this._canvas);
+
+        // Clean up references
+        this._canvas = null;
+        this._ctx = null;
+        this._particles = [];
+        this._map = null;
+    },
+
+    // --- Public Methods to Control Layer ---
+    setParticleCount: function(count) {
+        this._particleCount = count;
+        this.options.particleCount = count; // Update options too
+        if (this._canvas) { // Only recreate if layer is on map
+            this._createParticles();
+        }
+        return this; // Allow chaining
+    },
+
+    setSpeedFactor: function(speed) {
+        this._speedFactor = speed;
+        this.options.speedFactor = speed;
+        return this;
+    },
+
+    setFadeAmount: function(fade) {
+        this._fadeAmount = fade;
+        this.options.fadeAmount = fade;
+        return this;
+    },
+
+    setLineWidth: function(width) {
+        this._particleLineWidth = width;
+        this.options.lineWidth = width;
+         if (this._ctx) { // Apply immediately if possible
+            this._ctx.lineWidth = this._particleLineWidth;
+         }
+        return this;
+    },
+
+    // --- Internal Methods ---
+
+    _resizeCanvas: function () {
+        if (!this._map || !this._canvas) return;
+        const mapSize = this._map.getSize();
+        this._canvas.width = mapSize.x;
+        this._canvas.height = mapSize.y;
+
+        // Update canvas position based on map pane's position
+        const panePos = L.DomUtil.getPosition(this.getPane());
+        L.DomUtil.setPosition(this._canvas, panePos);
+
+        // Optional: Clear canvas on resize if needed
+        // this._ctx.clearRect(0, 0, this._canvas.width, this._canvas.height);
+    },
+
+    _reset: function () {
+        // Called on map move/zoom. Resizes canvas and repositions it.
+        this._resizeCanvas();
+
+        // --- IMPORTANT ---
+        // For a truly geographically accurate overlay, you would need to:
+        // 1. Get the new map bounds (map.getBounds()).
+        // 2. Potentially fetch new wind data for these bounds.
+        // 3. Recalculate particle positions based on their LatLng (if you store them)
+        //    and the new map projection/zoom using map.latLngToLayerPoint().
+        // For this example, we just resize the canvas and let the existing particles
+        // continue, effectively redrawing in the new view frame. This might look
+        // slightly jumpy on pans/zooms but is simpler to implement initially.
+        // A simple approach might be to just recreate particles on reset:
+        // this._createParticles();
+        // Or we can let them run - depends on the desired visual effect. Let's let them run.
+
+         // Re-apply line width in case context was reset (though resizeCanvas doesn't reset it)
+         if (this._ctx) {
+            this._ctx.lineWidth = this._particleLineWidth;
+         }
+    },
+
+    _createParticles: function () {
+        if (!this._canvas) return;
+        this._particles = [];
+        const width = this._canvas.width;
+        const height = this._canvas.height;
+        for (let i = 0; i < this._particleCount; i++) {
+            // Pass internal state needed by Particle constructor/reset
+            this._particles.push(new this.Particle(width, height, this));
+        }
+    },
+
+    _startAnimation: function() {
+        if (!this._animationFrameId) {
+            this._animate();
+        }
+    },
+
+    _stopAnimation: function() {
+        if (this._animationFrameId) {
+            cancelAnimationFrame(this._animationFrameId);
+            this._animationFrameId = null;
+        }
+    },
+
+    _animate: function () {
+        if (!this._ctx || !this._map) {
+            // Stop if canvas or map is gone
+            this._stopAnimation();
+            return;
+        }
+
+        // 1. Fade the existing canvas slightly (creates trails)
+        this._ctx.fillStyle = `rgba(0, 0, 0, ${this._fadeAmount})`;
+        this._ctx.fillRect(0, 0, this._canvas.width, this._canvas.height);
+
+        // 2. Update and draw particles
+        // Set line width once (assuming it doesn't change per particle)
+        this._ctx.lineWidth = this._particleLineWidth;
+        const width = this._canvas.width;
+        const height = this._canvas.height;
+
+        this._particles.forEach(p => {
+            p.update(width, height);
+            p.draw(this._ctx);
+        });
+
+        // 3. Request next frame
+        this._animationFrameId = requestAnimationFrame(this._animate.bind(this));
+    },
+
+    // --- Vector Field Function ---
+    // Simple rotating field centered on the canvas - same as original
+    // In a real scenario, this should use map coordinates and real data.
+    _getFlowVector: function (x, y, canvasWidth, canvasHeight) {
+        const centerX = canvasWidth / 2;
+        const centerY = canvasHeight / 2;
+        const dx = x - centerX;
+        const dy = y - centerY;
+        const distance = Math.sqrt(dx * dx + dy * dy) || 1;
+        const angle = Math.atan2(dy, dx);
+        const speed = 1; // Base speed
+
+        return {
+            dx: -Math.sin(angle) * speed,
+            dy: Math.cos(angle) * speed
+        };
+    },
+
+    // --- Particle Class (Nested or defined within the layer's scope) ---
+    // We pass `layer` instance to the Particle so it can access layer's methods/state
+    Particle: class {
+        constructor(canvasWidth, canvasHeight, layer) {
+            this.layer = layer; // Reference to the parent layer
+            this.reset(canvasWidth, canvasHeight, true);
+            this.maxLife = Math.random() * 200 + 100;
+            this.life = Math.random() * this.maxLife;
+        }
+
+        reset(canvasWidth, canvasHeight, initial = false) {
+            this.x = Math.random() * canvasWidth;
+            this.y = Math.random() * canvasHeight;
+            this.px = this.x;
+            this.py = this.y;
+            if (!initial) {
+                this.life = this.maxLife;
+            }
+        }
+
+        update(canvasWidth, canvasHeight) {
+            this.life--;
+
+            if (this.life <= 0) {
+                this.reset(canvasWidth, canvasHeight);
+            }
+
+            this.px = this.x;
+            this.py = this.y;
+
+            // Get velocity using the layer's method
+            // Pass current canvas dimensions for the placeholder calculation
+            const flow = this.layer._getFlowVector(this.x, this.y, canvasWidth, canvasHeight);
+
+            // Use speedFactor from the layer
+            this.x += flow.dx * this.layer._speedFactor;
+            this.y += flow.dy * this.layer._speedFactor;
+
+            // Screen Wrap (relative to current canvas size)
+            if (this.x < 0) { this.x = canvasWidth; this.px = this.x; }
+            if (this.x > canvasWidth) { this.x = 0; this.px = this.x; }
+            if (this.y < 0) { this.y = canvasHeight; this.py = this.y; }
+            if (this.y > canvasHeight) { this.y = 0; this.py = this.y; }
+        }
+
+        draw(ctx) {
+            const alphaFactor = Math.sin((1 - this.life / this.maxLife) * Math.PI);
+            ctx.strokeStyle = `rgba(255, 255, 255, ${alphaFactor * 0.8 + 0.1})`;
+            ctx.beginPath();
+            ctx.moveTo(this.px, this.py);
+            ctx.lineTo(this.x, this.y);
+            ctx.stroke();
+        }
+    }
+});
+
+// Factory function
+L.windParticleLayer = function (options) {
+    return new L.WindParticleLayer(options);
+};
