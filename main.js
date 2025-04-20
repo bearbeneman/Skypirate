@@ -7,8 +7,8 @@ import * as state from './state.js';
 import { debounce, isUkDst, formatUtcDateForPrecipFilename } from './utils.js'; // <-- Kept relevant utils
 
 // Service Imports
-import * as mapService from './mapService.js';
-import * as dataService from './dataService.js';
+import * as mapService from './mapservice.js';
+import * as dataService from './dataservice.js';
 import * as ukmoWeatherService from './ukmoWeatherService.js'; // **** ADDED Import ****
 import * as raspService from './raspService.js';
 import * as particleService from './particleService.js';
@@ -19,12 +19,12 @@ import * as obstacleService from './obstacleService.js';
 import * as imageProcessor from './imageProcessor.js'; // Keep if needed by other parts or passed
 
 // UI / Control Imports
-import * as markerManager from './markerManager.js';
+import * as markerManager from './markermanager.js';
 import * as timeControls from './timeControls.js';
-import * as windFilter from './windFilter.js';
+import * as windFilter from './windfilter.js';
 import { starFilterControl } from './starFilterControl.js';
 import * as raspUi from './raspControls.js';
-import * as particleUi from './particleControls.js';
+import * as particleUi from './particlecontrols.js';
 import * as calendarUi from './calendar.js';
 import * as airspaceControls from './airspaceControls.js';
 import { searchControl } from './searchControl.js';
