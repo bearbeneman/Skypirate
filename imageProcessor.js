@@ -1,7 +1,7 @@
 // --- START OF FILE imageProcessor.js ---
 
 // <<< Import the new config options >>>
-import { ENABLE_IMAGE_BOTTOM_TRANSPARENCY, IMAGE_BOTTOM_TRANSPARENCY_HEIGHT_PX } from '../config.js'; // Adjust path if needed
+import { ENABLE_IMAGE_BOTTOM_TRANSPARENCY, IMAGE_BOTTOM_TRANSPARENCY_HEIGHT_PX } from 'config.js'; // Adjust path if needed
 
 /**
  * Processes an image loaded from a URL: makes pixels above a threshold transparent,
