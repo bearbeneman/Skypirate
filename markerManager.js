@@ -28,12 +28,16 @@ let currentOnMapCompassMarker = null;
 // --- Other Module-Level Variables ---
 let _updateCallbacks = null;
 let _mapInstance = null; // Store the map instance
+let _siteDataStoreRef = null; // **** ADD Ref to store siteDataStore ****
+let _debouncedCompassUpdaters = {};
 
 // --- Constants ---
 const CSS_ANIMATION_DURATION = 500;
 const ANIMATION_END_BUFFER = 100;
 const MARKER_ICON_HEIGHT_ESTIMATE = 42;
 const GAP_BELOW_MARKER = 5; // Potentially used if offsetting based on marker, though ON_MAP_COMPASS_Y_OFFSET is now main offset control
+const COMPASS_UPDATE_DEBOUNCE_MS = 200; // **** ADD Debounce time ****
+
 
 /**
  * Gets a cached Leaflet AwesomeMarker icon instance or creates a new one.
@@ -60,6 +64,7 @@ export function initializeMarkers(map, layers, siteDataStore, updateCallbacks) {
     console.log("Initializing markers (with popups)...");
     _updateCallbacks = updateCallbacks;
     _mapInstance = map; // Store the map instance
+	_siteDataStoreRef = siteDataStore;
 
     windIndicator.initializeWindIndicatorLayer(map);
 
@@ -134,6 +139,7 @@ export function initializeMarkers(map, layers, siteDataStore, updateCallbacks) {
                  const siteId = e.target.siteId;
                  const markerInstance = e.target;
                  console.log(`Popup closed for site ${siteId}`);
+
 
                  windIndicator.removeWindIndicator(markerInstance);
 
