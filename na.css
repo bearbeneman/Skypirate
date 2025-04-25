@@ -1,0 +1,740 @@
+/* =================================== */
+/* --- Base Styles & Variables --- */
+/* =================================== */
+:root {
+    --light-bg: #f8f9fa;
+    --med-bg: #e9ecef;
+    --dark-bg: #dee2e6;
+    --border-color: #ced4da;
+    --text-color: #212529;
+    --muted-text-color: #6c757d;
+    --primary-color: #0d6efd;
+    --secondary-color: #6c757d;
+    --light-gray: #f8f9fa;
+    --white: #fff;
+    --accent-color: rgb(200, 0, 0);
+    --shadow-color: rgba(0, 0, 0, 0.075);
+    --map-bg: #e0e0e0;
+    --body-bg: #f0f2f5;
+    --card-bg: var(--white);
+    --card-border-color: var(--border-color);
+    --card-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    --btn-padding-y-sm: .25rem;
+    --btn-padding-x-sm: .5rem;
+    --font-size-sm: .875rem;
+    --border-radius: .375rem;
+    --border-radius-sm: .25rem;
+    --live-stats-color: #0a58ca;
+    /* CSS variable for calendar height offset */
+    --calendar-height-with-margin: 185px; /* Default fallback */
+    /* CSS variable for tracker panel height */
+    --tracker-bottom-panel-height: 200px; /* Default fallback */
+}
+
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+    display: flex;
+    flex-direction: column;
+    font-size: 14px;
+    background-color: var(--body-bg);
+    color: var(--text-color);
+    line-height: 1.5;
+    user-select: none;
+   -webkit-user-select: none;
+   -moz-user-select: none;
+   -ms-user-select: none;
+}
+
+#map {
+    flex-grow: 1;
+    width: 100%;
+    border: 1px solid #ccc;
+    box-sizing: border-box;
+    position: relative;
+    z-index: 0;
+    background-color: var(--map-bg);
+    cursor: grab;
+}
+#map:active { cursor: grabbing; }
+
+hr { border: none; border-top: 1px solid var(--border-color); margin: 1rem 0; opacity: 0.25; }
+
+/* =================================== */
+/* --- Top Control Bars --- */
+/* =================================== */
+
+/* Wind Speed Filter Controls */
+#wind-speed-filter-controls {
+    padding: 8px 10px; background-color: #f8f8f8; border-bottom: 1px solid #ccc;
+    display: flex; gap: 10px; row-gap: 5px; justify-content: center; align-items: center;
+    flex-wrap: wrap; font-size: 0.9em; flex-shrink: 0;
+    margin-left: auto; margin-right: auto; max-width: 95%; box-sizing: border-box;
+}
+#wind-speed-filter-controls label { margin-right: 3px; vertical-align: middle;}
+#wind-speed-filter-controls input[type="checkbox"] { margin-right: 5px; vertical-align: middle;}
+#wind-speed-filter-controls input[type="number"] { width: 50px; padding: 4px; border: 1px solid #ccc; border-radius: 3px; vertical-align: middle;}
+#wind-speed-filter-controls input[type="number"]:disabled { background-color: #eee; opacity: 0.7; cursor: not-allowed; }
+#wind-speed-filter-status { font-size: 0.9em; color: #555;}
+
+/* Airspace/NOTAM/RASP/MET Controls */
+#airspace-controls {
+    padding: 8px 10px; background-color: #f0f8ff; border-bottom: 1px solid #ccc;
+    display: flex; gap: 15px; row-gap: 5px; justify-content: center; align-items: center;
+    flex-wrap: wrap; font-size: 0.9em; flex-shrink: 0;
+}
+#airspace-controls label { margin-right: 3px; vertical-align: middle; }
+#airspace-controls input[type="checkbox"] { margin-right: 5px; vertical-align: middle;}
+#airspace-controls input[type="range"] { vertical-align: middle; }
+#airspace-controls #airspace-altitude-filter-control { display: inline-flex; align-items: center; gap: 5px; }
+#airspace-controls #airspace-altitude-filter { width: 100px; }
+#airspace-controls #airspace-altitude-value { min-width: 60px; font-family: monospace; text-align: right; }
+#airspace-controls #rasp-opacity-control,
+#airspace-controls #precip-opacity-control { display: inline-flex; align-items: center; gap: 5px; }
+#airspace-controls #rasp-opacity-control label,
+#airspace-controls #precip-opacity-control label { font-weight: normal; }
+#airspace-controls #rasp-opacity-control input[type="range"],
+#airspace-controls #precip-opacity-control input[type="range"] { width: 80px; }
+#airspace-controls #rasp-opacity-control span,
+#airspace-controls #precip-opacity-control span { min-width: 35px; font-family: monospace; font-size: 0.9em; text-align: right; }
+#airspace-controls #rasp-overlay-status,
+#airspace-controls #precip-status { font-size: 0.9em; color: #555; font-style: italic; margin-left: 5px; }
+
+/* RASP Corner Controls (Hidden by default via JS/Config flag) */
+#rasp-corner-controls { display: none; padding: 10px; background-color: #ddeeff; border-bottom: 1px solid #ccc; font-size: 0.85em; flex-shrink: 0; }
+#rasp-corner-controls input[type="range"] { width: 360px; vertical-align: middle; margin: 0 3px; }
+#rasp-corner-controls span[id$="-value"] { display: inline-block; min-width: 40px; font-family: monospace; text-align: right; }
+#rasp-corner-controls div { margin-bottom: 5px; }
+#rasp-corner-controls button { padding: 5px 10px; }
+#rasp-corner-status { margin-left: 15px; font-style: italic; color: #555; }
+
+/* =================================== */
+/* --- Leaflet Popups --- */
+/* =================================== */
+
+/* --- DESKTOP Popup Styles --- */
+.leaflet-popup-content-wrapper {
+    max-width: 450px; /* Default max width */
+    background: var(--white);
+    border-radius: 5px;
+    box-shadow: 0 3px 14px rgba(0,0,0,0.4);
+}
+
+.leaflet-popup-content {
+    max-height: none;
+    overflow-y: visible;
+    margin: 13px 19px; /* Leaflet default-like margin */
+    /* Optional desktop height limit */
+    /* max-height: 600px; */
+    /* overflow-y: auto; */
+}
+/* Wrapper added inside popup content */
+.leaflet-popup-content-custom-wrapper {
+    margin: 0; /* Remove default margin if parent handles padding */
+}
+
+/* --- Popup Controls Section (Text + Compass) --- */
+.popup-controls {
+    margin-top: 10px; padding-top: 10px; border-top: 1px solid #eee;
+    display: flex; align-items: center; flex-wrap: nowrap;
+    justify-content: space-between; gap: 15px; width: 100%;
+}
+.popup-column { box-sizing: border-box; }
+.popup-column-text { text-align: center; flex-grow: 1; flex-shrink: 1; }
+.popup-column-compass { flex-grow: 0; flex-shrink: 0; }
+.popup-wind-compass-direction {
+    font-weight: bold; font-size: 3em; margin-right: 10px; color: #000; line-height: 1;
+}
+.popup-compass-container { text-align: center; }
+
+/* --- Popup Compass (Shared Visual Style with On-Map) --- */
+.popup-compass {
+    width: 70px; height: 70px; border: 2px solid #666; border-radius: 50%;
+    position: relative; background: #f0f0f0; /* Fallback & default background */
+    margin: 5px auto; overflow: hidden;
+}
+.popup-compass::after { /* Center dot */
+    content: ''; position: absolute; top: 50%; left: 50%; width: 10px; height: 10px;
+    background-color: #333; border-radius: 50%; transform: translate(-50%, -50%); z-index: 2;
+}
+/* Needle (DIV for Popup) */
+.popup-compass-needle {
+    width: 8%; height: 55%; background-color: red; position: absolute;
+    left: 46%; bottom: 50%; transform-origin: center bottom;
+    border-radius: 5px 5px 0 0; clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+    z-index: 1;
+    /* Rotation via CSS variable */
+    transform: rotate(var(--target-rotation, 0deg));
+    /* transition: transform 0.4s ease-out; /* Optional */
+}
+/* Animation Class */
+.popup-compass-needle.animate-needle {
+   /* animation: needle-spin-bounce 0.7s cubic-bezier(0.175, 0.885, 0.320, 1.275) forwards; */
+}
+
+/* Popup Wind/Rain Info */
+.popup-wind-info, .popup-rain-info {
+    font-size: 0.9em; margin-top: 5px; color: #000; width: 100%; text-align: center;
+}
+.popup-rain-info { margin-top: 4px; color: #000; }
+.popup-rain-icon { margin-right: 4px; color: #4682B4; font-size: 1.0em; vertical-align: middle; }
+
+/* Popup Webcam Link */
+.leaflet-popup-content .popup-webcam-link:hover { text-decoration: underline; }
+.leaflet-popup-content .popup-webcam-link i.fa-video { color: #6c757d; transition: color 0.2s ease-in-out; font-size: 1.1em; vertical-align: middle; }
+.leaflet-popup-content .popup-webcam-link:hover i.fa-video { color: #0078A8; }
+
+/* =================================== */
+/* --- On-Map Compass --- */
+/* =================================== */
+
+
+
+/* The ::before pseudo-element will hold the SVG background image */
+.on-map-compass-div-icon .popup-compass::before {
+    content: ''; /* Required for pseudo-elements to show */
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('images/compass.svg'); /* Path relative to your CSS file! */
+                                                    /* If CSS is root, use 'images/compass.svg' */
+                                                    /* If CSS is in 'css/', use '../images/compass.svg' */
+    background-size: contain; /* Or 'cover', or specific size like '100% 100%' or '484px 484px' */
+                                /* 'contain' ensures the whole SVG fits without cropping */
+    background-position: center;
+    background-repeat: no-repeat;
+    border-radius: 50%; /* Optional: If you want to ensure the background container is round */
+	
+}
+
+
+/* The L.DivIcon container */
+.on-map-compass-div-icon {
+    transform: translateY(47px); /* ADJUST 47px = marker height + gap */
+    transform-origin: 50% 50%;
+    pointer-events: none; /* Handled by pane */
+	
+}
+/* Ensure internal popup classes work within the divIcon */
+.on-map-compass-div-icon .popup-compass-container { width: 100%; height: 100%; position: relative; }
+.on-map-compass-div-icon .popup-compass {
+    width: 100%; height: 100%; border: 2px solid rgba(50, 50, 50, 0.7);
+    border-radius: 50%; position: relative; background: #eee; /* Fallback */
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4); overflow: hidden;
+}
+.on-map-compass-div-icon .popup-compass::after { /* Center dot */
+    content: ''; position: absolute; top: 50%; left: 50%; width: 8px; height: 8px;
+    background-color: rgba(30, 30, 30, 0.8); border-radius: 50%;
+    transform: translate(-50%, -50%); z-index: 2;
+}
+.on-map-compass-div-icon .popup-compass-needle {
+    /* Styles are identical to the popup needle above */
+    width: 8%; height: 55%; background-color: red; position: absolute;
+    left: 46%; bottom: 50%; transform-origin: center bottom;
+    border-radius: 5px 5px 0 0; clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+    z-index: 1; transform: rotate(var(--target-rotation, 0deg));
+    /* transition: transform 0.4s ease-out; */ /* REMOVED Transition for stability */
+}
+.on-map-compass-div-icon .popup-compass-needle.animate-needle {
+   /* animation: needle-spin-bounce 0.7s cubic-bezier(0.175, 0.885, 0.320, 1.275) forwards; */
+}
+
+.leaflet-onMapCompass-pane {
+    /* Set your desired z-index */
+    /* Try without !important first */
+    z-index: 500 !important; /* Use !important if necessary to override Leaflet */
+}
+
+
+/* ======================================== */
+/* --- Site Forecast Calendar --- */
+/* ======================================== */
+
+/* --- Main Panel Container --- */
+#site-forecast-calendar {
+    position: fixed; bottom: 0; left: 0; width: 100%;
+    background-color: #ffffff; border-top: 2px solid #aaa;
+    box-shadow: 0 -2px 5px rgba(0,0,0,0.1); z-index: 900;
+    padding: 5px 10px 10px 10px; box-sizing: border-box;
+    max-height: 180px; display: flex; flex-direction: column;
+    transform: translateY(100%); transition: transform 0.3s ease-in-out;
+}
+body.calendar-visible #site-forecast-calendar { transform: translateY(0); }
+
+/* --- Calendar Header (Single Row) --- */
+.calendar-header {
+    display: flex; flex-direction: row; align-items: center;
+    padding-bottom: 4px; margin-bottom: 4px; border-bottom: 1px solid #eee;
+    gap: 10px; flex-shrink: 0; width: 100%;
+}
+.header-left-group { display: flex; align-items: center; gap: 8px; flex-shrink: 1; min-width: 0; }
+.header-left-group #calendar-close-button { background: none; border: none; font-size: 1.1em; line-height: 1; cursor: pointer; padding: 0; color: #666; flex-shrink: 0; }
+.header-left-group #calendar-close-button:hover { color: #000; }
+.header-left-group #calendar-site-name { font-size: 1.5em; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.header-extra-info { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 5px 10px; font-size: 0.85em; color: #444; flex-grow: 1; flex-shrink: 1; min-width: 100px; text-align: center; }
+.header-info-item { white-space: nowrap; display: inline-flex; align-items: center; gap: 3px; }
+.header-info-item.altitude { font-weight: 500; }
+.header-info-item.map-links img { height: 20px; width: auto; vertical-align: middle; margin: 0 1px; border: none; opacity: 0.9; }
+.header-info-item.map-links img:hover { opacity: 1; }
+.header-info-item.webcam-link { font-size: 1.1em; color: #0078A8; text-decoration: none; }
+.header-info-item.webcam-link:hover { text-decoration: underline; }
+.header-info-item.webcam-link i { color: #6c757d; font-size: 1.1em; }
+#calendar-date { font-size: 1.2em; font-weight: 600; color: #555; white-space: nowrap; flex-shrink: 0; }
+
+
+.header-extra-info .club-info,
+.header-extra-info .wind-info,
+.header-extra-info .coords-info {
+    font-weight: 500; /* Match the altitude font weight */
+    /* You can add specific colors or other styles here if needed, */
+    /* but they will inherit the base color from .header-extra-info */
+    /* Example: color: #333; */
+}
+
+/* You might also want to ensure consistent vertical alignment if needed, */
+/* though 'align-items: center' on .header-info-item should handle this */
+.header-extra-info .header-info-item {
+    vertical-align: middle; /* Explicitly set if needed */
+}
+
+/* Add a vertical separator before info items (except the first) */
+.header-extra-info .header-info-item:not(:first-child) {
+    border-left: 1px solid #ccc; /* Adjust color (#ccc is light grey) and thickness if needed */
+    padding-left: 10px;         /* Space between the separator line and the item's content */
+                                /* The 'gap: ... 10px;' in .header-extra-info provides space *before* the line */
+}
+
+/* --- Calendar Content (Hour Boxes) --- */
+#calendar-content { justify-content: center; display: flex; gap: 5px; overflow-x: auto; overflow-y: hidden; padding-bottom: 5px; flex-grow: 1; scrollbar-width: thin; scrollbar-color: #ccc #f0f0f0; align-items: stretch; min-height: 80px; }
+#calendar-content::-webkit-scrollbar { height: 8px; }
+#calendar-content::-webkit-scrollbar-track { background: #f0f0f0; border-radius: 4px;}
+#calendar-content::-webkit-scrollbar-thumb { background-color: #ccc; border-radius: 4px; border: 2px solid #f0f0f0; }
+.calendar-hour-box { border: 1px solid #ccc; border-radius: 4px; padding: 6px 8px 8px 8px; min-width: 90px; text-align: center; font-size: 0.8em; position: relative; background-color: #f9f9f9; flex-shrink: 0; display: flex; flex-direction: column; justify-content: center; box-sizing: border-box; cursor: pointer; transition: background-color 0.2s, border-color 0.2s; }
+.calendar-hour-box:hover { background-color: #eee; }
+.calendar-hour-box span { margin-bottom: 1px; white-space: nowrap; line-height: 1.3; }
+.calendar-hour-box .time { font-weight: bold; font-size: 1.2em; order: 1; }
+.calendar-hour-box .speed, .calendar-hour-box .direction { display: inline; font-size: 0.95em; order: 2; color: #333; }
+.calendar-hour-box .speed:not(:empty)::after { content: " / "; margin: 0 1px; color: #888; }
+.calendar-hour-box .direction { color: #555; }
+.calendar-stars-container, .calendar-rain-icon-container { order: 3; margin-top: 3px; height: 1em; line-height: 1; white-space: nowrap; display: inline-block; vertical-align: middle; }
+.calendar-stars-container { margin-right: 4px; }
+.calendar-star { font-size: 0.9em; color: #f0ad4e; margin: 0 1px; vertical-align: middle; }
+.calendar-star.empty, .far.calendar-star { color: #ccc; }
+.calendar-stars-nodata { font-size: 0.85em; color: #aaa; font-style: italic; display: inline-block; line-height: 1em; }
+.calendar-rain-icon { font-size: 1.1em; color: #4682B4; vertical-align: middle; }
+
+.calendar-rain-icon {
+    font-size: 1.1em; /* Base size */
+    vertical-align: middle;
+    transition: color 0.2s ease-in-out; /* Smooth color transition if desired */
+}
+
+.calendar-rain-icon.drizzle-icon {
+    color: #b0c4de; /* Light Steel Blue / Grayish */
+    opacity: 0.8;
+}
+
+.calendar-rain-icon.light-rain-icon {
+    color: #4682B4; /* Steel Blue */
+}
+
+.calendar-rain-icon.moderate-rain-icon {
+    color: #2a5a8a; /* Darker Steel Blue */
+}
+
+.calendar-rain-icon.heavy-rain-icon {
+    color: #1a3a5a; /* Very Dark Blue */
+    /* Optional: slightly larger */
+    /* font-size: 1.15em; */
+}
+
+
+.calendar-rain-icon-container { line-height: 1; }
+.calendar-hour-box.highlighted { border-color: #007bff; background-color: #e7f3ff; border-width: 2px; padding: 5px 7px 7px 7px; }
+.calendar-hour-box.passed { opacity: 0.65; background-color: #eee; border-color: #ddd; cursor: default; }
+.calendar-hour-box.passed:hover { background-color: #e5e5e5; }
+.calendar-hour-box.passed.highlighted { background-color: #d0e7ff; opacity: 0.8; border-color: #007bff; cursor: pointer; }
+.suitability-indicator { position: absolute; top: 2px; right: 2px; width: 9px; height: 9px; background-color: #28a745; border-radius: 50%; border: 1px solid #fff; z-index: 1; }
+#calendar-content .calendar-message { width: 100%; text-align: center; color: #888; padding: 20px 0; font-style: italic; align-self: center; }
+
+
+/* =================================== */
+/* --- Leaflet Controls & Overlays --- */
+/* =================================== */
+
+/* --- Leaflet Control Positioning Fix for Calendar --- */
+.leaflet-control-container .leaflet-bottom { transition: bottom 0.3s ease-in-out; z-index: 850; }
+body.calendar-visible .leaflet-control-container .leaflet-bottom.leaflet-left,
+body.calendar-visible .leaflet-control-container .leaflet-bottom.leaflet-right {
+    bottom: var(--calendar-height-with-margin, 185px);
+}
+
+/* Hide Default Leaflet Attribution */
+.leaflet-control-attribution { display: none !important; }
+
+/* --- Star Filter --- */
+.leaflet-control-stars { background-color: rgba(255, 255, 255, 0.9); box-shadow: 0 1px 5px rgba(0,0,0,0.4); border-radius: 4px; padding: 5px 8px; display: flex; align-items: center; gap: 8px; }
+.leaflet-control-stars-main-label { font-weight: bold; font-size: 0.9em; margin-right: 5px; flex-shrink: 0; user-select: none; }
+.leaflet-control-stars-icon-container { display: flex; gap: 2px; }
+.leaflet-control-star-icon { font-size: 1.3em; cursor: pointer; transition: color 0.2s ease-in-out, transform 0.1s ease-in-out; color: #cccccc; }
+.leaflet-control-star-icon.active { color: #f0ad4e; }
+.leaflet-control-star-icon:hover { color: #e09a31; transform: scale(1.1); }
+.leaflet-control-star-icon.active:hover { color: #f0ad4e; }
+.leaflet-control-stars-reset { margin-left: 5px; padding: 0px 5px; line-height: 1; font-size: 1.4em; font-weight: bold; color: #777; border: 1px solid #ccc; border-radius: 3px; cursor: pointer; background-color: #f8f8f8; transition: background-color 0.2s, color 0.2s; }
+.leaflet-control-stars-reset:hover { background-color: #eee; color: #333; }
+.leaflet-control-stars-reset:disabled { opacity: 0.5; cursor: not-allowed; background-color: #f8f8f8; color: #aaa; }
+.leaflet-control-stars.disabled { opacity: 0.7; cursor: not-allowed; }
+.leaflet-control-stars.disabled .leaflet-control-star-icon, .leaflet-control-stars.disabled .leaflet-control-stars-reset { cursor: not-allowed; pointer-events: none; }
+
+/* --- Marker Filter --- */
+.leaflet-control-marker-filter { background-color: white; border-radius: 4px; box-shadow: 0 1px 5px rgba(0,0,0,0.2); }
+.leaflet-control-marker-filter .marker-filter-item { padding: 5px 8px; cursor: pointer; opacity: 0.5; transition: opacity 0.2s ease-in-out, background-color 0.2s ease-in-out; font-size: 0.9em; border-radius: 3px; white-space: nowrap; }
+.leaflet-control-marker-filter .marker-filter-item i { margin-right: 5px; width: 1.1em; text-align: center; }
+.leaflet-control-marker-filter .marker-filter-item:hover { background-color: #f4f4f4; }
+.leaflet-control-marker-filter .marker-filter-item.active { opacity: 1.0; /* background-color: #efefef; */ } /* Optional active background */
+
+/* --- Particle Controls --- */
+.leaflet-control-particles { background-color: white; border-radius: 4px; box-shadow: 0 1px 5px rgba(0,0,0,0.65); }
+.leaflet-control-particles-button { background-color: white; border-radius: 4px; width: 30px; height: 30px; line-height: 30px; text-align: center; text-decoration: none; color: black; display: block; font-size: 1.2em; cursor: pointer; }
+.leaflet-control-particles-button:hover { background-color: #f4f4f4; }
+.leaflet-control-particles-button.active { background-color: #ddd; }
+.leaflet-control-particles-panel { position: absolute; top: 32px; left: 0; background-color: rgba(255, 255, 255, 0.95); padding: 10px 15px; border-radius: 0 0 4px 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.4); width: 280px; display: none; z-index: -1; border: 1px solid #ccc; border-top: none; box-sizing: border-box; }
+.leaflet-control-particles-panel .particle-control-group { display: flex; align-items: center; margin-bottom: 8px; gap: 8px; font-size: 0.9em; }
+.leaflet-control-particles-panel label { font-weight: bold; flex-basis: 60px; flex-shrink: 0; text-align: right; margin-right: 5px; }
+.leaflet-control-particles-panel input[type="range"] { flex-grow: 1; vertical-align: middle; height: 18px; }
+.leaflet-control-particles-panel .particle-value-span { min-width: 50px; font-family: monospace; text-align: left; }
+.leaflet-control-particles-panel input[type="color"] { vertical-align: middle; height: 25px; width: 40px; padding: 1px; border: 1px solid #ccc; border-radius: 3px; cursor: pointer; }
+.leaflet-control-particles.disabled .leaflet-control-particles-button { opacity: 0.5; cursor: not-allowed; background-color: #eee; }
+
+/* --- Search Control --- */
+.leaflet-control-search { background-color: white; border-radius: 4px; box-shadow: 0 1px 5px rgba(0,0,0,0.65); position: relative; z-index: auto; }
+.leaflet-control-search.suggestions-visible { z-index: 1015; } /* Elevate when suggestions are open */
+.leaflet-control-search-input { width: 220px; height: 30px; padding: 0 10px; border: none; border-radius: 4px; font-size: 1em; box-sizing: border-box; outline: none; }
+.leaflet-control-search-suggestions { position: absolute; top: 100%; left: 0; right: 0; max-height: 250px; overflow-y: auto; background: white; border: 1px solid #ccc; border-top: none; border-radius: 0 0 4px 4px; display: none; z-index: 1; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+.leaflet-control-search-suggestions div { padding: 8px 12px; cursor: pointer; border-bottom: 1px solid #eee; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.9em; }
+.leaflet-control-search-suggestions div:last-child { border-bottom: none; }
+.leaflet-control-search-suggestions div:hover { background-color: #f0f0f0; }
+.leaflet-control-search.disabled { opacity: 0.7; pointer-events: none; }
+.leaflet-control-search.disabled .leaflet-control-search-input { background-color: #f4f4f4; cursor: not-allowed; }
+
+/* --- Key Controls (RASP, MET Rain) --- */
+.leaflet-control-rasp-key, .leaflet-control-met-rain-key { background-color: rgba(255, 255, 255, 0.8); padding: 5px; border-radius: 4px; box-shadow: 0 1px 5px rgba(0,0,0,0.4); }
+.leaflet-control-rasp-key { transform: translateY(-61px); }
+.leaflet-control-met-rain-key { transform: translateY(-30px); }
+.leaflet-control-rasp-key img, .leaflet-control-met-rain-key img { display: block; max-width: 450px; max-height: 120px; height: auto; width: auto; border: 1px solid #ccc; }
+
+/* --- Webcam Overlay Icon --- */
+.webcam-overlay-icon { background-color: rgba(255, 255, 255, 0.7); border-radius: 50%; box-shadow: 0 0 3px rgba(0, 0, 0, 0.5); border: 1px solid rgba(0, 0, 0, 0.3); display: flex; justify-content: center; align-items: center; text-align: center; }
+.webcam-overlay-icon .fa-camera { color: #333333; line-height: 1; }
+
+/* --- Wind Indicator (OpenMeteo) --- */
+.wind-indicator-icon { pointer-events: none; overflow: visible; }
+.wind-indicator-arrow { width: 20px; height: 200px; margin-left: -10px; background-color: rgba(51, 136, 255, 0.8); position: absolute; top: 0; left: 50%; transform-origin: center top; transition: transform 0.3s ease-out; border-radius: 0 0 3px 3px; box-shadow: 1px 1px 3px rgba(0,0,0,0.3); display: flex; justify-content: center; align-items: center; }
+.wind-indicator-arrow::before { content: ''; position: absolute; top: -12%; left: 50%; margin-left: -10px; margin-top: 12px; width: 0; height: 0; border-left: 10px solid transparent; border-right: 10px solid transparent; border-top: 12px solid rgba(51, 136, 255, 0.8); transform-origin: center center; transform: rotate(180deg); }
+.indicator-text-wrapper { transform: rotate(-90deg); transform-origin: center center; white-space: nowrap; display: flex; gap: 5px; align-items: center; color: white; font-size: 20px; font-weight: bold; text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.6); line-height: 1; padding: 1px 3px; position: relative; }
+
+/* --- Other Overlays & Markers --- */
+.leaflet-particles-layer { z-index: 450; pointer-events: none; }
+.leaflet-distortableimage-handle, .leaflet-editing-icon, .leaflet-distortableimage-popup { display: none !important; }
+.leaflet-distortable-image-overlay { pointer-events: none; }
+.leaflet-image-layer img.precip-blend-screen { mix-blend-mode: screen; }
+.awesome-marker-custom-svg { width: 20px; height: 20px; margin-top: -2px; margin-left: 3px; display: inline-block; vertical-align: middle; }
+.leaflet-marker-icon { background: none; border: none; padding: 0; box-shadow: none; } /* Base marker icon reset */
+
+/* --- Loading Indicators --- */
+#loading-indicator, #obstacle-loading-indicator { position: fixed; left: 50%; transform: translate(-50%, -50%); background-color: rgba(255, 255, 255, 0.95); padding: 20px 30px; border-radius: 8px; display: none; border: 1px solid #ddd; box-shadow: 0 4px 15px rgba(0,0,0,0.15); text-align: center; z-index: 10000; }
+#loading-indicator { top: 50%; }
+#obstacle-loading-indicator { top: 60%; z-index: 9999; }
+#loading-indicator .loader-text, #obstacle-loading-indicator .loader-text { font-size: 1.1em; color: #444; font-weight: 500; display: inline-block; }
+.dots-container { display: inline-block; margin-left: 2px; }
+.dot { display: inline-block; animation: blinkDots 1.4s infinite ease-in-out both; font-weight: bold; font-size: 1.2em; vertical-align: bottom; }
+.dot:nth-child(1) { animation-delay: 0s; } .dot:nth-child(2) { animation-delay: .2s; } .dot:nth-child(3) { animation-delay: .4s; }
+@keyframes blinkDots { 0%, 80%, 100% { opacity: 0; } 40% { opacity: 1; } }
+
+/* --- Legend Styles --- */
+.info.legend { background: rgba(255, 255, 255, 0.9); padding: 10px; border: 1px solid #aaa; border-radius: 5px; font-family: sans-serif; font-size: 12px; line-height: 1.4; box-shadow: 0 1px 5px rgba(0,0,0,0.4); }
+.legend-item { margin-bottom: 4px; white-space: nowrap; }
+.legend-item span { display: inline-block; width: 20px; height: 10px; margin-right: 5px; vertical-align: middle; border: 1px solid #555; }
+.legend-item i { margin-right: 5px; vertical-align: middle; font-style: normal; }
+.legend-disclaimer { margin-top: 8px; font-weight: bold; color: #800; border-top: 1px solid #ccc; padding-top: 5px; font-size: 0.9em; }
+.zoom-message { color: #555; font-style: italic; margin-top: 5px; display: none; }
+.obstacle-legend { max-width: 250px; }
+
+/* =================================== */
+/* --- Tracker UI Specific Styles --- */
+/* =================================== */
+
+/* Base visibility handled by body class */
+.tracker-ui { display: none !important; }
+body.tracker-active .tracker-ui { display: block !important; } /* Or flex/grid as needed */
+
+/* Hide specific elements in tracker mode */
+body.tracker-active #wind-speed-filter-controls, body.tracker-active #airspace-controls, body.tracker-active #rasp-corner-controls, body.tracker-active .leaflet-control-layers, body.tracker-active .leaflet-control-stars, body.tracker-active .leaflet-control-particles, body.tracker-active .leaflet-control-search, body.tracker-active .leaflet-control-obstacle-toggle, body.tracker-active .leaflet-control-rasp-key, body.tracker-active .leaflet-control-met-rain-key, body.tracker-active .leaflet-control-load-igc, body.tracker-active #site-forecast-calendar { display: none !important; }
+body.tracker-active .leaflet-marker-pane { opacity: 0.1; pointer-events: none; transition: opacity 0.3s ease-in-out; }
+body:not(.tracker-active) .leaflet-marker-pane { opacity: 1; pointer-events: auto; }
+
+/* Tracker Panel Layout */
+#trackerBottomPanel { position: fixed; bottom: 0; left: 0; width: 100%; z-index: 900; background-color: #ffffff; border-top: 2px solid #aaa; box-shadow: 0 -2px 5px rgba(0,0,0,0.1); transform: translateY(100%); transition: transform 0.3s ease-in-out; }
+body.tracker-active #trackerBottomPanel { display: block !important; transform: translateY(0); }
+
+.chart-controls-container { display: flex; flex-wrap: nowrap; align-items: stretch; width: 100%; }
+.chart-controls-container > #trackerHeaderCard, .chart-controls-container > .barogram-container { width: 50%; box-sizing: border-box; }
+#trackerHeaderCard .card-body { padding: 0.75rem; height: 100%; display: flex; flex-direction: column; }
+#trackerHeaderCard .key-info-grid { flex-grow: 1; }
+.barogram-container { width: 50%; box-sizing: border-box; padding: 10px 15px; position: relative; min-height: 150px; display: flex; flex-direction: column; justify-content: center; }
+#trackerBarogramCanvas { display: block; max-width: 100%; height: auto; padding:10px; }
+
+.controls-footer { background-color: var(--light-bg); padding: 10px 15px; border-top: 1px solid var(--border-color); }
+.info-display { font-size: 1.1em; color: var(--muted-text-color); text-align: center; margin-bottom: 8px; min-height: 1.2em; font-variant-numeric: tabular-nums; }
+.slider-container { margin-bottom: 10px; padding: 0; }
+#trackerTimeSlider { width: 100%; cursor: pointer; height: 8px; appearance: none; background: var(--dark-bg); border-radius: 5px; outline: none; display: block; margin: 0; }
+#trackerTimeSlider::-webkit-slider-thumb { appearance: none; width: 18px; height: 18px; background: var(--primary-color); border-radius: 50%; cursor: pointer; margin-top: -5px; box-shadow: 0 0 2px rgba(0,0,0,0.3); }
+#trackerTimeSlider::-moz-range-thumb { width: 18px; height: 18px; background: var(--primary-color); border-radius: 50%; cursor: pointer; border: none; box-shadow: 0 0 2px rgba(0,0,0,0.3); }
+.playback-controls { display: flex; align-items: center; justify-content: center; gap: 0.75rem; }
+.speed-control { display: flex; align-items: center; gap: 0.3rem; }
+.auto-pan-control { display: flex; align-items: center; margin-left: 10px; }
+.auto-pan-control label { cursor: pointer; color: var(--muted-text-color); padding: 3px 5px; border-radius: var(--border-radius-sm); display: inline-block; line-height: 1; }
+.auto-pan-control input[type="checkbox"] { margin-right: 4px; cursor: pointer; vertical-align: middle; }
+.auto-pan-control input[type="checkbox"]:checked + label { color: var(--primary-color); background-color: #e2e6ea; }
+.auto-pan-control label i { vertical-align: middle; }
+
+/* Live Stats Bar */
+#trackerLiveStatsBar { margin-bottom: 0px; position: fixed; bottom: 0; left: 0; width: 100%; z-index: 901; background-color: rgba(255, 255, 255, 0.5); border-top: 1px solid var(--card-border-color); display: flex !important; justify-content: space-around; align-items: stretch; padding: 0.75rem 0.5rem; flex-wrap: wrap; gap: 0.5rem; transform: translateY(100%); transition: transform 0.3s ease-in-out, bottom 0.3s ease-in-out; }
+body.tracker-active #trackerLiveStatsBar { bottom: var(--tracker-bottom-panel-height, 200px); transform: translateY(0); }
+.live-stat-item { opacity: 1 !important; display: flex; flex-direction: column; align-items: center; text-align: center; flex: 1; min-width: 80px; padding: 0 5px; }
+.live-stat-icon { font-size: 1em; color: var(--muted-text-color); margin-bottom: 2px; line-height: 1; }
+.live-stat-value { opacity: 1 !important; font-size: 1.3em; font-weight: bold; color: var(--live-stats-color); line-height: 1.1; font-variant-numeric: tabular-nums; white-space: nowrap; min-width: 60px; display: inline-block; text-align: center; }
+.live-stat-label { font-size: 0.75em; color: var(--muted-text-color); text-transform: uppercase; letter-spacing: 0.5px; line-height: 1; margin-top: 2px; }
+
+/* Tracker Stats Panel */
+#trackerStatsPanel { position: absolute; top: 20px; right: 10px; width: 425px; z-index: 1030; background-color: rgba(255, 255, 255, 0.95); border-radius: var(--border-radius); box-shadow: var(--card-shadow); border: 1px solid var(--card-border-color); overflow: hidden; transition: max-height 0.4s ease-in-out; max-height: 60px; } /* Start collapsed */
+#trackerStatsPanel.expanded { max-height: 85vh; }
+.stats-panel-toggle { cursor: pointer; user-select: none; display: flex; justify-content: space-between; align-items: center; margin-bottom: 0; padding: 1rem 1.25rem; } /* Add padding here */
+.stats-panel-chevron { transition: transform 0.4s ease-in-out; font-size: 0.9em; color: var(--muted-text-color); margin-left: 10px; }
+#trackerStatsPanel.expanded .stats-panel-chevron { transform: rotate(180deg); }
+.stats-panel-content { padding: 0 1.25rem 1rem 1.25rem; max-height: calc(85vh - 80px); overflow-y: auto; } /* Padding matches card-body */
+.stats-card .card-body { padding: 0; } /* Remove padding from card-body as toggle handles it */
+
+/* Tracker Map Overlay */
+#trackerMapOverlayInfo { position: fixed; top: 15%; left: 50%; transform: translateX(-50%); width: auto; max-width: 90%; z-index: 1001; background-color: rgba(255, 255, 255, 0.85); color: #000000; padding: 5px 15px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3); display: none; /* Hidden by default */ flex-wrap: nowrap; gap: 15px; justify-content: center; align-items: center; border: 1px solid rgba(68, 68, 68, 0.6); transition: opacity 0.3s ease-in-out; }
+body.tracker-active #trackerMapOverlayInfo { display: flex; }
+#trackerMapOverlayInfo > div.key-info-item { text-align: center; flex: 0 0 auto; }
+#trackerMapOverlayInfo h5 { margin: 0 0 2px 0; font-size: 0.9em; font-weight: 500; display: flex; align-items: center; gap: 5px; white-space: nowrap; }
+#trackerMapOverlayInfo span { font-size: 0.75em; opacity: 0.85; display: block; }
+
+/* Tracker Misc */
+.glider-marker-icon img { transition: transform 0.1s linear; transform-origin: center bottom; display: block; max-width: 100%; margin: 0 !important; padding: 0 !important; }
+#exitTrackerBtn { color: #a94442; border-color: #a94442; background-color: transparent; transition: color .15s ease-in-out, background-color .15s ease-in-out, border-color .15s ease-in-out, box-shadow .15s ease-in-out; }
+#exitTrackerBtn:hover, #exitTrackerBtn:focus { color: #fff; background-color: #a94442; border-color: #a94442; box-shadow: 0 0 0 0.2rem rgba(169, 68, 66, 0.5); }
+#exitTrackerBtn i { color: inherit; }
+
+/* ============================ */
+/* --- Mobile Adjustments --- */
+/* ============================ */
+@media (max-width: 768px) {
+
+    /* Popups */
+    .leaflet-popup-content-wrapper { max-width: 90vw; }
+    .leaflet-popup-content { max-height: 30vh; overflow-y: auto; margin: 10px 15px 10px 10px; margin-right: 5px; } /* Adjust margins */
+
+    /* Calendar */
+    #site-forecast-calendar { max-height: 145px; padding: 3px 5px 5px 5px; }
+    .calendar-header { padding-bottom: 3px; margin-bottom: 3px; gap: 5px; flex-wrap: wrap; }
+    .header-left-group { gap: 5px; flex-shrink: 10; }
+    .header-left-group #calendar-close-button { font-size: 1.0em; }
+    .header-left-group #calendar-site-name { font-size: 1.2em; }
+
+	
+    .header-extra-info { font-size: 0.75em; gap: 2px 5px; padding-top: 0; width: 100%; order: 4; border-top: 1px solid #eee; margin-top: 3px; }
+    .header-info-item.map-links img { height: 16px; }
+    .header-info-item.webcam-link { font-size: 1.1em; }
+    .header-info-item.webcam-link i { font-size: 1.1em; }
+    #calendar-content { gap: 3px; padding-bottom: 3px; justify-content: center; } /* Center boxes */
+    #calendar-content::-webkit-scrollbar { height: 5px; }
+    #calendar-content::-webkit-scrollbar-thumb { border-width: 1px; }
+    .calendar-hour-box { min-width: 70px; padding: 3px 4px 4px 4px; font-size: 0.7em; }
+    .calendar-hour-box.highlighted { padding: 2px 3px 3px 3px; }
+    .calendar-hour-box span { margin-bottom: 0px; line-height: 1.2; }
+    .calendar-hour-box .time { font-size: 1.15em; }
+    .calendar-hour-box .speed, .calendar-hour-box .direction { font-size: 0.9em; }
+    .calendar-stars-container, .calendar-rain-icon-container { margin-top: 1px; height: 0.8em; }
+    .calendar-star { font-size: 0.8em; }
+    .calendar-stars-nodata { font-size: 0.75em; line-height: 0.8em; }
+    .calendar-rain-icon-container { line-height: 0.8em; }
+    .calendar-rain-icon { font-size: 0.9em; }
+    .suitability-indicator { width: 6px; height: 6px; top: 1px; right: 1px; border-width: 0.5px; }
+    .calendar-hour-box.passed { opacity: 0.6; }
+
+    /* Tracker Adjustments */
+    .chart-controls-container { flex-direction: column; } /* Stack vertically */
+    .chart-controls-container > #trackerHeaderCard,
+    .chart-controls-container > .barogram-container { width: 100%; } /* Full width */
+    .barogram-container { min-height: 150px; } /* Ensure minimum height */
+    #trackerLiveStatsBar { flex-wrap: wrap; justify-content: space-between; } /* Allow wrapping */
+    .live-stat-item { min-width: 65px; flex-basis: 45%; } /* Approx 2 per row */
+    #trackerMapOverlayInfo { top: auto; bottom: calc(var(--tracker-bottom-panel-height, 200px) + 10px); left: 50%; transform: translateX(-50%); width: 95%; } /* Position above bottom panel */
+    #trackerStatsPanel { width: 95%; right: 2.5%; } /* Make stats panel wider */
+
+}
+
+
+
+
+
+
+
+
+/* =================================== */
+/* --- UKMO Display Panel --- */
+/* =================================== */
+#ukmo-display-panel {
+    background-color: #e8f4f8; /* Light blue background */
+    border-bottom: 1px solid #b0d0e0;
+    padding: 8px 15px;
+    font-size: 0.85em;
+    text-align: center;
+    display: flex; /* Use flexbox for layout */
+    flex-wrap: wrap; /* Allow items to wrap */
+    justify-content: center; /* Center items horizontally */
+    align-items: center; /* Center items vertically */
+    gap: 10px 20px; /* Spacing between items (row gap, column gap) */
+    flex-shrink: 0; /* Prevent panel shrinking */
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+    transition: background-color 0.3s ease;
+    min-height: 30px; /* Ensure it has some height even when empty */
+    box-sizing: border-box;
+}
+
+#ukmo-display-panel.loading {
+    background-color: #f0f0f0;
+    color: #777;
+    font-style: italic;
+}
+
+#ukmo-display-panel.error {
+    background-color: #ffe0e0;
+    color: #a00;
+    font-weight: bold;
+}
+
+/* Placeholder message style */
+.ukmo-placeholder {
+    color: #668;
+    font-style: italic;
+    width: 100%; /* Take full width */
+}
+
+/* Individual data item in the panel */
+.ukmo-item {
+    display: inline-flex; /* Align icon/label/value */
+    align-items: center;
+    gap: 5px;
+    padding: 2px 5px;
+    background-color: rgba(255, 255, 255, 0.4);
+    border-radius: 3px;
+}
+
+.ukmo-item i.fas { /* Style for Font Awesome icons */
+    color: #336699;
+    font-size: 1.1em;
+    width: 1.1em; /* Ensure consistent width */
+    text-align: center;
+}
+
+.ukmo-label {
+    /* Optional: if you want distinct labels */
+     /* font-weight: bold; */
+     /* margin-right: 3px; */
+}
+
+.ukmo-value {
+    font-weight: bold;
+    font-family: monospace; /* Good for numeric data */
+    white-space: nowrap;
+}
+
+/* Hide panel if config flag is false (handled by JS) */
+/* #ukmo-display-panel.hidden-by-config { display: none !important; } */
+
+
+/* --- Responsive adjustments --- */
+@media (max-width: 768px) {
+    #ukmo-display-panel {
+        font-size: 0.8em;
+        padding: 5px 10px;
+        gap: 5px 10px;
+    }
+    .ukmo-item i.fas {
+        font-size: 1em;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+/* Container for the on-map compass icon */
+.on-map-compass-div-icon {
+    position: relative; /* Needed for absolute positioning of child */
+    background-color: transparent; /* Ensure container is transparent */
+    overflow: visible; /* Allow text to show outside the iconSize bounds */
+    /* Remove pointer events from container if it blocks underlying map */
+    pointer-events: none;
+}
+
+/* Adjustments for the compass visual container */
+.on-map-compass-div-icon .popup-compass-container {
+   /* This container holds the actual compass graphic */
+   /* It should allow pointer events IF the icon itself should be interactive, */
+   /* but for just displaying info, 'none' is safer */
+   pointer-events: none; /* Or 'auto' if the compass needs clicks */
+}
+
+
+/* The text element below the compass */
+.on-map-compass-text {
+    position: absolute; /* Position relative to .on-map-compass-div-icon */
+    bottom: -33px;      /* Adjust this value to position below the icon container */
+                        /* A negative value pushes it down */
+    left: 4;            /* Align to the left edge of the container */
+    width: 100%;        /* Make it span the width of the container */
+    text-align: center; /* Center the text horizontally */
+    font-size: 20px;    /* Adjust as needed */
+    font-weight: 600;   /* Slightly bolder */
+    line-height: 1;     /* Prevent extra spacing */
+    /* Color is set inline via style attribute */
+    pointer-events: none; /* Prevent text interfering with map clicks */
+    text-shadow:         /* Add a slight shadow for better readability */
+       -1px -1px 0 #fff,
+        1px -1px 0 #fff,
+       -1px  1px 0 #fff,
+        1px  1px 0 #fff; /* White outline */
+		    white-space: nowrap; /* Prevent the text from wrapping */
+
+}
+
+
+.leaflet-fade-anim .leaflet-map-pane .leaflet-popup {
+Display: none;
+}
+
+
+
+
+
+
+
+/* --- END OF FILE style.css --- */
+
+

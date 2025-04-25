@@ -1,6 +1,14 @@
 // --- START OF FILE config.js ---
 // config.js - Comprehensive Configuration
 
+
+// Add Scaling Parameters:
+export const MIN_COMPASS_SIZE = 60; // Smallest size at min zoom
+export const MAX_COMPASS_SIZE = 200; // Largest size at max zoom
+export const MIN_ZOOM_FOR_SCALING = 8;  // Zoom level where compass starts being smallest
+export const MAX_ZOOM_FOR_SCALING = 14; // Zoom level where compass reaches largest size
+export const ON_MAP_COMPASS_Y_OFFSET = 5; // Pixels to offset compass above the site marker (0 for centered)
+
 // --- Custom Precipitation Image Overlay ---
 export const PRECIP_IMAGE_BASE_URL = "https://pub-12b531149cba4064bc7b820709c68157.r2.dev";
 export const PRECIP_IMAGE_PREFIX = "precip_";
@@ -63,7 +71,7 @@ export const DEFAULT_MAP_ZOOM = 6;
 export const GEOLOCATION_ZOOM = 10; // Zoom level when user location is found
 export const SEARCH_RESULT_ZOOM_LEVEL = 13;
 export const SEARCH_FLYTO_DURATION = 4;
-export const SHOW_KK7_LAYERS_DEFAULT = true;
+export const SHOW_KK7_LAYERS_DEFAULT = false;
 
 export const BASE_MAP_OPTIONS = {
     MAPTILER_VECTOR: false,      // Default: Terrain Vector (MapTiler) - Recommended Default
@@ -158,7 +166,7 @@ export const NOTAM_CIRCLE_FALLBACK_RADIUS_M = 5000;
 
 // Weather Data Caching with IndexedDB
 export const WEATHER_CACHE_ENABLED = true; // Set to false to disable caching
-export const WEATHER_CACHE_DURATION_MINUTES = 60; // How long cache is valid
+export const WEATHER_CACHE_DURATION_MINUTES = 240; // How long cache is valid
 export const WEATHER_DB_NAME = 'weatherDB';       // Name for the IndexedDB database
 export const WEATHER_STORE_NAME = 'weatherStore'; // Name for the object store within the DB
 // Throttling for API Fetches

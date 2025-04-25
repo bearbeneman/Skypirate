@@ -171,21 +171,27 @@ function attachTrackerListeners() {
     // **************************************************************************
 
 
-    // Helper to add listener if element exists
-    const addListener = (element, event, handler, elementIdentifier = 'Unknown Element') => {
-        if (element) {
-            try {
-                element.removeEventListener(event, handler); // Remove first to prevent duplicates
-                element.addEventListener(event, handler);
-                // **** STEP 4 LOGGING: Confirm listener ATTACHED ****
-                console.log(`TRACKERAPP LISTENERS: Listener for '${event}' ATTACHED to ${elementIdentifier}.`); // <<< MODIFIED Log for Success
-            } catch (e) {
-                 console.error(`TRACKERAPP LISTENERS: Error attaching listener for '${event}' to ${elementIdentifier}:`, e);
-            }
-        } else {
-            console.warn(`TRACKERAPP LISTENERS: Listener for ${event} NOT attached, element is missing for ${elementIdentifier}.`);
+// Helper to add listener if element exists
+const addListener = (element, event, handler, elementIdentifier = 'Unknown Element') => {
+    if (element) {
+        try {
+            // *** ADDED DEBUG LOG HERE ***
+            console.log(`DEBUG trackerApp: Attempting to add listener '${event}' to element:`, element);
+            // ****************************
+
+            element.removeEventListener(event, handler); // Remove first to prevent duplicates
+            element.addEventListener(event, handler);
+
+            // **** STEP 4 LOGGING: Confirm listener ATTACHED ****
+            console.log(`TRACKERAPP LISTENERS: Listener for '${event}' ATTACHED to ${elementIdentifier}.`); // <<< MODIFIED Log for Success
+
+        } catch (e) {
+             console.error(`TRACKERAPP LISTENERS: Error attaching listener for '${event}' to ${elementIdentifier}:`, e);
         }
-    };
+    } else {
+        console.warn(`TRACKERAPP LISTENERS: Listener for ${event} NOT attached, element is missing for ${elementIdentifier}.`);
+    }
+};
 
     // Use the helper for clarity and logging
     addListener(trackerUiElements.fileInput, 'change', handleFileLoad, 'fileInput');

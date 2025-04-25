@@ -317,6 +317,20 @@ export function checkSiteMeetsSpeedCriteriaForDay(weatherData, targetDate, minMp
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /**
  * Formats a date string (YYYY-MM-DD) into British format (DD-MM-YY).
  * Handles potential errors gracefully.

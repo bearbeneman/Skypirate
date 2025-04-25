@@ -52,12 +52,11 @@ let _particleControl = null; // Keep Particle Control instance
 let _particleWindLayer = null; // Keep Particle Layer instance
 let _searchControl = null; // Keep Search Control instance
 let _loadIgcControl = null; // Keep Load IGC control instance
-let updateUICallbacks = {}; // Keep callbacks object
-
+let updateUICallbacks = {}; // Define updateUICallbacks HERE, before functions that might use it
 
 // --- Obstacle Layer Logic ---
-// ... (Keep existing Obstacle Layer Logic - L.Control.ObstacleToggle, loadAndDisplayObstacles) ...
 function loadAndDisplayObstacles(map, geojsonUrl) {
+    // ... (Obstacle loading logic - unchanged) ...
     console.log(`Fetching obstacle GeoJSON from: ${geojsonUrl}`);
     fetch(geojsonUrl)
         .then(response => {
@@ -95,6 +94,7 @@ function loadAndDisplayObstacles(map, geojsonUrl) {
         });
 }
 L.Control.ObstacleToggle = L.Control.extend({
+    // ... (Obstacle Toggle Control - unchanged) ...
     options: { position: 'topleft' },
     onAdd: function(map) {
         const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control');
@@ -143,52 +143,9 @@ L.Control.ObstacleToggle = L.Control.extend({
     onRemove: function(map) { this._container = null; }
 });
 
-// --- Mode Switching Functions ---
-// ... (Keep existing enterTrackerMode, exitTrackerMode functions) ...
-function enterTrackerMode() {
-    if (state.isTrackerModeActive || !_map) return;
-    console.log("Entering Tracker Mode...");
-    state.setTrackerModeActive(true);
-    calendarUi.hideSiteForecastCalendar();
-    if (_searchControl?._suggestionsContainer) {
-         _searchControl._suggestionsContainer.innerHTML = '';
-         _searchControl._suggestionsContainer.style.display = 'none';
-    }
-    document.body.classList.add('tracker-active');
-    updateUICallbacks.refreshAll?.();
-    setTimeout(() => {
-        const bottomPanel = document.getElementById('trackerBottomPanel');
-        if (bottomPanel && state.isTrackerModeActive) {
-             document.documentElement.style.setProperty('--tracker-bottom-panel-height', `${bottomPanel.offsetHeight}px`);
-        }
-    }, 50);
-    console.log("Tracker Mode Requested. UI update pending via refreshAll.");
-}
-function exitTrackerMode() {
-    if (!state.isTrackerModeActive || !_map) return;
-    console.log("Exiting Tracker Mode...");
-    state.setTrackerModeActive(false);
-    tracker?.resetTracker?.();
-    document.body.classList.remove('tracker-active');
-    document.documentElement.style.removeProperty('--tracker-bottom-panel-height');
-    updateUICallbacks.refreshAll?.();
-    const targetZoom = config.DEFAULT_MAP_ZOOM || 10;
-    if ("geolocation" in navigator) {
-        navigator.geolocation.getCurrentPosition(
-            (position) => { if (_map) _map.flyTo([position.coords.latitude, position.coords.longitude], targetZoom); },
-            (error) => { console.warn(`[ExitTracker] Geo error (${error.code}): ${error.message}. Setting default zoom.`); if (_map) _map.setZoom(targetZoom); },
-            { enableHighAccuracy: false, timeout: 8000, maximumAge: 0 }
-        );
-    } else {
-        console.warn("[ExitTracker] Geolocation not supported. Setting default zoom.");
-        if (_map) _map.setZoom(targetZoom);
-     }
-    console.log("Tracker Mode Deactivation Requested. UI update pending via refreshAll.");
-}
-
 // --- OWM Layer Time Update ---
-// ... (Keep existing updateOwmLayerTime function) ...
 function updateOwmLayerTime() {
+    // ... (updateOwmLayerTime - unchanged) ...
     if (!owmPrecipLayer) return;
     const dateStr = state.selectedGlobalDate;
     const hourStr = state.selectedGlobalHour;
@@ -206,10 +163,10 @@ function updateOwmLayerTime() {
 }
 
 
-// --- LoadIgcControl Definition (Moved Before DOMContentLoaded) ---
-// ... (Keep existing LoadIgcControl definition) ...
+// --- LoadIgcControl Definition ---
 if (typeof L !== 'undefined' && L.Control.LoadIgcControl === undefined) {
      L.Control.LoadIgcControl = L.Control.extend({
+         // ... (LoadIgcControl definition - unchanged, includes debug logs) ...
          options: { position: 'topleft' },
          onAdd: function(map) {
              const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-load-igc');
@@ -218,17 +175,27 @@ if (typeof L !== 'undefined' && L.Control.LoadIgcControl === undefined) {
              button.innerHTML = '<i class="fa-solid fa-upload"></i>';
              button.href = '#';
              button.role = 'button';
+
+             // Prevent map click when clicking the button
              L.DomEvent.on(button, 'click', L.DomEvent.stop);
+
+             // Main click handler for the button
              L.DomEvent.on(button, 'click', () => {
+                 console.log("DEBUG main.js: Load IGC button control CLICKED.");
                  const fileInput = document.getElementById('trackerFileInput');
+                 console.log("DEBUG main.js: Found fileInput element:", fileInput);
                  if (fileInput) {
                      fileInput.value = null;
+                     console.log("DEBUG main.js: Attempting to trigger click() on fileInput...");
                      fileInput.click();
+                     console.log("DEBUG main.js: click() on fileInput potentially triggered.");
                  } else {
                      console.error("Load IGC Control: Tracker file input ('#trackerFileInput') not found!");
                      alert("File input element not found.");
                  }
              }, this);
+
+             // Prevent scroll propagation
              L.DomEvent.disableScrollPropagation(container);
              return container;
          }
@@ -240,159 +207,182 @@ if (typeof L !== 'undefined' && L.Control.LoadIgcControl === undefined) {
 // --- Main Application Initialization ---
 document.addEventListener('DOMContentLoaded', () => {
     console.log("DOM Loaded. Initializing application...");
-    // Use global loadingIndicator variable
     loadingIndicator = document.getElementById('loading-indicator');
     const mapDiv = document.getElementById('map');
 
-    if (!mapDiv) {
-        console.error("Fatal Error: Map container 'map' not found!");
-        if (loadingIndicator) loadingIndicator.style.display = 'none';
-        document.body.innerHTML = "<p style='color:red; text-align:center; padding: 20px;'>Error: Map container not found.</p>";
-        return;
-    }
+    if (!mapDiv) { /* ... Error handling ... */ return; }
 
     // --- Reset global state variables ---
-    starFilter = null;
-    _map = null;
-    _raspCornersLatLng = null;
-    _particleControl = null;
-    _particleWindLayer = null;
-    _searchControl = null;
-    _loadIgcControl = null;
-    updateUICallbacks = {};
-    _obstacleLayer = null;
-    owmPrecipLayer = null;
-    openMeteoToggle = null;
+    starFilter = null; _map = null; _raspCornersLatLng = null; _particleControl = null;
+    _particleWindLayer = null; _searchControl = null; _loadIgcControl = null;
+    // updateUICallbacks = {}; // <<< Already defined globally
+    _obstacleLayer = null; owmPrecipLayer = null; openMeteoToggle = null;
 
-    // --- Define Update Callbacks early ---
+    // --- Define Mode Switching Functions FIRST ---
+    // These need access to the main map instance (_map) and the updateUICallbacks object
+    // They will be assigned to updateUICallbacks later.
+    function enterTrackerMode() {
+        if (!_map) return; // Ensure map exists
+        if (state.isTrackerModeActive) return;
+        console.log("Entering Tracker Mode...");
+        state.setTrackerModeActive(true);
+        calendarUi.hideSiteForecastCalendar();
+        if (_searchControl?._suggestionsContainer) {
+            _searchControl._suggestionsContainer.innerHTML = '';
+            _searchControl._suggestionsContainer.style.display = 'none';
+        }
+        document.body.classList.add('tracker-active');
+        // CRITICAL: Ensure updateUICallbacks IS defined before calling this
+        if (updateUICallbacks?.refreshAll) {
+            updateUICallbacks.refreshAll();
+        } else {
+            console.error("enterTrackerMode: updateUICallbacks.refreshAll not defined when called!");
+        }
+        setTimeout(() => {
+            const bottomPanel = document.getElementById('trackerBottomPanel');
+            if (bottomPanel && state.isTrackerModeActive) {
+                document.documentElement.style.setProperty('--tracker-bottom-panel-height', `${bottomPanel.offsetHeight}px`);
+            }
+        }, 50);
+        console.log("Tracker Mode Requested. UI update pending via refreshAll.");
+    }
+
+    function exitTrackerMode() {
+        if (!_map) return; // Ensure map exists
+        if (!state.isTrackerModeActive) return;
+        console.log("Exiting Tracker Mode...");
+        state.setTrackerModeActive(false);
+        tracker?.resetTracker?.(); // Call reset function from tracker module
+        document.body.classList.remove('tracker-active');
+        document.documentElement.style.removeProperty('--tracker-bottom-panel-height');
+        // CRITICAL: Ensure updateUICallbacks IS defined before calling this
+        if (updateUICallbacks?.refreshAll) {
+            updateUICallbacks.refreshAll();
+        } else {
+            console.error("exitTrackerMode: updateUICallbacks.refreshAll not defined when called!");
+        }
+        const targetZoom = config.DEFAULT_MAP_ZOOM || 10;
+        // Geolocation logic
+        if ("geolocation" in navigator) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => { if (_map) _map.flyTo([position.coords.latitude, position.coords.longitude], targetZoom); },
+                (error) => { console.warn(`[ExitTracker] Geo error (${error.code}): ${error.message}. Setting default zoom.`); if (_map) _map.setZoom(targetZoom); },
+                { enableHighAccuracy: false, timeout: 8000, maximumAge: 0 }
+            );
+        } else {
+            console.warn("[ExitTracker] Geolocation not supported. Setting default zoom.");
+            if (_map) _map.setZoom(targetZoom);
+        }
+        console.log("Tracker Mode Deactivation Requested. UI update pending via refreshAll.");
+    }
+
+    // --- Now define the updateUICallbacks object ---
     console.log("Defining Update Callbacks...");
     const originalShowCalendar = calendarUi.showSiteForecastCalendar;
-    // ***** START: MODIFIED updateUICallbacks *****
+
+    // Define the callbacks object, assigning the functions we just defined
     updateUICallbacks = {
         refreshAll: () => {
-        // Determine current site context (prioritize popup, then calendar)
-        const currentSiteId = state.currentlyOpenPopupSiteId || state.selectedSiteIdForCalendar;
-        const currentDate = state.selectedGlobalDate;
-        const currentHour = state.selectedGlobalHour;
-
-        // **** ADD UKMO Panel Update (Call early) ****
-        if (config.DISPLAY_UKMO_PANEL && ukmoDisplayPanel.updatePanel) {
-             ukmoDisplayPanel.updatePanel(currentSiteId, currentDate, currentHour);
-        } else if (config.DISPLAY_UKMO_PANEL && !ukmoDisplayPanel.updatePanel) {
-            console.warn("UKMO Display Panel is enabled but updatePanel function is not available.");
-        }
-        // **** END UKMO Panel Update ****
-
-
-        // Check state for tracker mode
-        if (!state.isTrackerModeActive) {
-            // --- Show/Update Standard Layers/Markers ---
-            markerManager.updateMapMarkers(_map, mapService.layers, dataService.siteDataStore);
-            if (windFilter) windFilter.updateStatusText?.();
-
-            // Particle Update Logic (using state.userPrefersParticlesVisible)
-            if (state.userPrefersParticlesVisible) {
-                if (_particleWindLayer && particleService?.updateParticleLayer) {
-                     particleService.updateParticleLayer(_particleWindLayer, _map, dataService.siteDataStore);
+            const currentSiteId = state.currentlyOpenPopupSiteId || state.selectedSiteIdForCalendar;
+            const currentDate = state.selectedGlobalDate;
+            const currentHour = state.selectedGlobalHour;
+            // UKMO Panel Update
+            if (config.DISPLAY_UKMO_PANEL && ukmoDisplayPanel.updatePanel) {
+                ukmoDisplayPanel.updatePanel(currentSiteId, currentDate, currentHour);
+            }
+            // Check state for tracker mode
+            if (!state.isTrackerModeActive) {
+                // Standard Mode Refresh
+                markerManager.updateMapMarkers(_map, mapService.layers, dataService.siteDataStore);
+                if (windFilter) windFilter.updateStatusText?.();
+                // Particle Update
+                if (state.userPrefersParticlesVisible) {
+                    if (_particleWindLayer && particleService?.updateParticleLayer) {
+                        particleService.updateParticleLayer(_particleWindLayer, _map, dataService.siteDataStore);
+                    }
+                } else {
+                    if (_particleWindLayer && particleService?.stopParticles) {
+                        particleService.stopParticles(_particleWindLayer);
+                    }
+                }
+                // RASP Update
+                if (raspService && raspService.updateRaspOverlay) {
+                     const raspUiElements = raspUi.raspOverlayStatus ? { raspOverlayStatus: raspUi.raspOverlayStatus } : {};
+                     const currentCorners = raspService.getCurrentRaspCorners ? (raspService.getCurrentRaspCorners() || _raspCornersLatLng) : _raspCornersLatLng;
+                     raspService.updateRaspOverlay(_map, currentCorners, raspUiElements, null, null);
+                }
+                updateOwmLayerTime();
+                metRainControls.updateLayer();
+                airspaceService.updateGeneralAirspaceVisibility?.();
+                airspaceService.updateNotamVisibility?.();
+                calendarUi.updateSiteForecastCalendar?.();
+                // OpenMeteo Indicator Update
+                windIndicator.removeAllWindIndicators();
+                if (state.isOpenMeteoIndicatorEnabled && state.currentlyOpenPopupSiteId) {
+                    console.log(`[refreshAll] Attempting to add wind indicators for site: ${state.currentlyOpenPopupSiteId}`);
+                    windIndicator.addIndicatorsForSite?.(state.currentlyOpenPopupSiteId, _map);
                 }
             } else {
-                 if (_particleWindLayer && particleService?.stopParticles) {
-                     particleService.stopParticles(_particleWindLayer);
-                 }
+                // Tracker Mode Refresh (Hiding Layers)
+                console.log("[refreshAll] Tracker Mode Active: Hiding non-essential layers.");
+                if (config.DISPLAY_UKMO_PANEL && ukmoDisplayPanel.clearPanel) { ukmoDisplayPanel.clearPanel(false); }
+                if (owmPrecipLayer && _map.hasLayer(owmPrecipLayer)) _map.removeLayer(owmPrecipLayer);
+                metRainControls.updateLayer(); // Handles its own hiding
+                if (_particleWindLayer && _map.hasLayer(_particleWindLayer)) _map.removeLayer(_particleWindLayer);
+                // Safely try to hide RASP
+                if (raspService?.hideOverlay) { // Check for a specific hide function first
+                    raspService.hideOverlay(_map);
+                } else if (raspService?.updateRaspOverlay) { // Fallback: Update with null data
+                     raspService.updateRaspOverlay(_map, null, { raspOverlayStatus: null }, null, null);
+                     console.log("Attempted to hide RASP via updateRaspOverlay.");
+                } else {
+                     console.warn("Cannot remove RASP overlay in tracker mode - no suitable function found in raspService.");
+                }
+                // //raspService.removeRaspOverlay(_map); // Previous faulty line commented
+                Object.values(mapService.layers?.kk7Layers || {}).forEach(layer => { if (layer && _map.hasLayer(layer)) _map.removeLayer(layer); });
+                if (_webcamLayer && _map.hasLayer(_webcamLayer)) _map.removeLayer(_webcamLayer);
+                const obstacleLayerInstance = obstacleService.getLayer(); if(obstacleLayerInstance && _map.hasLayer(obstacleLayerInstance)) _map.removeLayer(obstacleLayerInstance);
+                windIndicator.removeAllWindIndicators(); // Remove site wind indicators
             }
+        }, // End of refreshAll
 
-            // RASP Update
-            if (raspService && raspService.updateRaspOverlay) {
-                const raspUiElements = raspUi.raspOverlayStatus ? { raspOverlayStatus: raspUi.raspOverlayStatus } : {};
-                const currentCorners = raspService.getCurrentRaspCorners ? (raspService.getCurrentRaspCorners() || _raspCornersLatLng) : _raspCornersLatLng;
-                raspService.updateRaspOverlay(_map, currentCorners, raspUiElements, null, null);
+        refreshMarkersOnly: () => {
+            if (!state.isTrackerModeActive) {
+               markerManager.updateMapMarkers(_map, mapService.layers, dataService.siteDataStore);
+               if (windFilter) windFilter.updateStatusText?.();
+               const currentSiteId = state.currentlyOpenPopupSiteId || state.selectedSiteIdForCalendar;
+               if (config.DISPLAY_UKMO_PANEL && ukmoDisplayPanel.updatePanel) {
+                   ukmoDisplayPanel.updatePanel(currentSiteId, state.selectedGlobalDate, state.selectedGlobalHour);
+               }
             }
-
-            // OWM Update
-            updateOwmLayerTime();
-
-            // --- MET RAIN UPDATE ---
-            metRainControls.updateLayer();
-
-            // Airspace Update
-            airspaceService.updateGeneralAirspaceVisibility?.();
-            airspaceService.updateNotamVisibility?.();
-
-            // Calendar/Time Update
-            calendarUi.updateSiteForecastCalendar?.();
-
-
-            // --- REVISED OpenMeteo Indicator Update ---
-            windIndicator.removeAllWindIndicators();
-            if (state.isOpenMeteoIndicatorEnabled && state.currentlyOpenPopupSiteId) { // Only for open popup
-                console.log(`[refreshAll] Attempting to add wind indicators for site: ${state.currentlyOpenPopupSiteId}`);
-                windIndicator.addIndicatorsForSite?.(state.currentlyOpenPopupSiteId, _map);
+        },
+        showCalendar: (siteId) => {
+            if (!state.isTrackerModeActive) {
+                originalShowCalendar(siteId);
+                if (config.DISPLAY_UKMO_PANEL && ukmoDisplayPanel.updatePanel) {
+                    ukmoDisplayPanel.updatePanel(siteId, state.selectedGlobalDate, state.selectedGlobalHour);
+                }
             }
-            // --- END REVISED OpenMeteo Indicator Update ---
-
-        } else {
-            // --- In Tracker Mode: Hide non-tracker layers ---
-            console.log("[refreshAll] Tracker Mode Active: Hiding non-essential layers.");
-
-            // **** ADD Hiding UKMO Panel ****
-            if (config.DISPLAY_UKMO_PANEL && ukmoDisplayPanel.clearPanel) {
-                ukmoDisplayPanel.clearPanel(false); // Hide completely
-            }
-            // **** ----------------------- ****
-
-            // Hide other layers
-            if (owmPrecipLayer && _map.hasLayer(owmPrecipLayer)) _map.removeLayer(owmPrecipLayer);
-            metRainControls.updateLayer(); // Will handle its own hiding based on state
-            if (_particleWindLayer && _map.hasLayer(_particleWindLayer)) _map.removeLayer(_particleWindLayer);
-            raspService.removeRaspOverlay(_map);
-            Object.values(mapService.layers?.kk7Layers || {}).forEach(layer => { if (layer && _map.hasLayer(layer)) _map.removeLayer(layer); });
-            if (_webcamLayer && _map.hasLayer(_webcamLayer)) _map.removeLayer(_webcamLayer);
-            const obstacleLayerInstance = obstacleService.getLayer(); if(obstacleLayerInstance && _map.hasLayer(obstacleLayerInstance)) _map.removeLayer(obstacleLayerInstance);
-            windIndicator.removeAllWindIndicators(); // Remove site wind indicators
-        }
-    }, // End of refreshAll
-
-    refreshMarkersOnly: () => {
-        if (!state.isTrackerModeActive) {
-           markerManager.updateMapMarkers(_map, mapService.layers, dataService.siteDataStore);
-           if (windFilter) windFilter.updateStatusText?.();
-           // Update UKMO panel based on current context
-           const currentSiteId = state.currentlyOpenPopupSiteId || state.selectedSiteIdForCalendar;
-            if (config.DISPLAY_UKMO_PANEL && ukmoDisplayPanel.updatePanel) {
-               ukmoDisplayPanel.updatePanel(currentSiteId, state.selectedGlobalDate, state.selectedGlobalHour);
-            }
-        }
-    },
-    showCalendar: (siteId) => { // Pass siteId directly
-        if (!state.isTrackerModeActive) {
-            originalShowCalendar(siteId);
-            // Update panel when calendar opens for a specific site
-            if (config.DISPLAY_UKMO_PANEL && ukmoDisplayPanel.updatePanel) {
-                ukmoDisplayPanel.updatePanel(siteId, state.selectedGlobalDate, state.selectedGlobalHour);
-            }
-        }
-    },
-    hideCalendar: () => { // No siteId needed here
-         calendarUi.hideSiteForecastCalendar();
-          // Update panel when calendar closes - check if a popup is *still* open
-          const currentPopupSiteId = state.currentlyOpenPopupSiteId;
-         if (config.DISPLAY_UKMO_PANEL && ukmoDisplayPanel.updatePanel) {
-             ukmoDisplayPanel.updatePanel(currentPopupSiteId, state.selectedGlobalDate, state.selectedGlobalHour); // Update based on popup state (or null)
-         }
-    },
-    enterTrackerMode: enterTrackerMode,
-    exitTrackerMode: exitTrackerMode
-};
-// ***** END: MODIFIED updateUICallbacks *****
-console.log("Update Callbacks Defined.");
-window.updateUICallbacks = updateUICallbacks; // Keep for debug if needed
+        },
+        hideCalendar: () => {
+             calendarUi.hideSiteForecastCalendar();
+             const currentPopupSiteId = state.currentlyOpenPopupSiteId;
+             if (config.DISPLAY_UKMO_PANEL && ukmoDisplayPanel.updatePanel) {
+                 ukmoDisplayPanel.updatePanel(currentPopupSiteId, state.selectedGlobalDate, state.selectedGlobalHour);
+             }
+        },
+        // Assign the functions defined above
+        enterTrackerMode: enterTrackerMode,
+        exitTrackerMode: exitTrackerMode
+    };
+    console.log("Update Callbacks Defined.");
+    window.updateUICallbacks = updateUICallbacks; // Keep for debug if needed
 
 
     try {
         if (loadingIndicator) loadingIndicator.style.display = 'block';
 
         // 1. Initialize Map Service
-        // ... (map service initialization as before) ...
         console.log("Initializing Map Service...");
         const mapServiceResult = mapService.initializeMap(mapDiv);
         _map = mapServiceResult.map;
@@ -401,83 +391,68 @@ window.updateUICallbacks = updateUICallbacks; // Keep for debug if needed
         const kk7Layers = mapServiceResult.kk7Layers;
         _raspCornersLatLng = mapServiceResult.raspCornersLatLng;
         _webcamLayer = mapServiceResult.webcamLayer;
+        if (!_map) { throw new Error("Map initialization failed in mapService."); } // Check after call
         console.log("Map Service Initialized.");
 
-
         // Initialize services that depend on map
-        // ... (webcam, obstacle, airspace service initializations as before) ...
         if (_webcamLayer) { webcamService.initializeWebcamLayer(_webcamLayer); } else { console.error("Webcam layer group not created!"); }
         obstacleService.initialize(_map); _obstacleLayer = obstacleService.getLayer();
         airspaceService.initializeAirspace(_map);
 
-
         // --- Initialize Feature Modules ---
-        metRainControls.initialize(_map); // Initialize MET Rain controls
+        metRainControls.initialize(_map);
 
         // --- Initialize Core UI Modules ---
         console.log("Initializing Main UI Modules...");
-        // ... (timeControls, windFilter, raspUi, calendarUi, airspaceControls, particleUi init as before) ...
         timeControls.initialize(updateUICallbacks);
         windFilter.initialize(updateUICallbacks);
         raspUi.initialize({ map: _map, raspCornersLatLng: _raspCornersLatLng }, raspService.updateRaspOverlay);
         calendarUi.initialize(dataService.siteDataStore, updateUICallbacks);
         airspaceControls.initializeControls();
         _particleControl = particleUi.initialize(_map, _particleWindLayer);
-
-        // **** ADD UKMO Display Panel Initialization ****
-        ukmoDisplayPanel.initialize(); // Initialize the new panel module
-        // **** ------------------------------------ ****
-
-
-        // Initialize OpenMeteo Toggle
+        ukmoDisplayPanel.initialize();
         openMeteoToggle = document.getElementById('open-meteo-indicator-toggle');
-        if (openMeteoToggle) { /* ... listener setup ... */
+        if (openMeteoToggle) {
              openMeteoToggle.checked = state.isOpenMeteoIndicatorEnabled;
              openMeteoToggle.addEventListener('change', handleOpenMeteoToggleChange);
         } else { console.error("OpenMeteo Indicator toggle checkbox not found!"); }
-
         console.log("Main UI Modules Initialized.");
 
         // --- Add Leaflet Controls ---
-        // ... (search, obstacle, zoom, star, marker filter, load igc controls as before) ...
-         console.log("Adding Leaflet Controls...");
-         _searchControl = searchControl({ position: 'topleft' }, dataService.siteDataStore, updateUICallbacks).addTo(_map);
-         new L.Control.ObstacleToggle({ position: 'topleft' }).addTo(_map);
-         L.control.zoom({ position: 'topleft' }).addTo(_map);
-         starFilter = starFilterControl({ position: 'topright' }, updateUICallbacks).addTo(_map);
-         markerFilterControl(mapService.layers, { position: 'topright' }).addTo(_map);
-         _loadIgcControl = new L.Control.LoadIgcControl().addTo(_map);
-
+        console.log("Adding Leaflet Controls...");
+        _searchControl = searchControl({ position: 'topleft' }, dataService.siteDataStore, updateUICallbacks).addTo(_map);
+        new L.Control.ObstacleToggle({ position: 'topleft' }).addTo(_map);
+        L.control.zoom({ position: 'topleft' }).addTo(_map);
+        starFilter = starFilterControl({ position: 'topright' }, updateUICallbacks).addTo(_map);
+        markerFilterControl(mapService.layers, { position: 'topright' }).addTo(_map);
+        _loadIgcControl = new L.Control.LoadIgcControl().addTo(_map);
 
         // --- Layer Control Setup ---
-        // ... (layer control setup as before) ...
-         const overlayMaps = {};
-         console.log("Setting up Layer Control Overlays...");
-         if (_particleWindLayer) { overlayMaps["<i class='fas fa-wind'></i> Wind Particles"] = _particleWindLayer; }
-         if (kk7Layers && Object.keys(kk7Layers).length > 0) { Object.assign(overlayMaps, kk7Layers); }
-         if (owmApiKey && owmApiKey !== 'YOUR_OWM_API_KEY' && owmApiKey.length > 10) {
-             owmPrecipLayer = L.tileLayer(`https://maps.openweathermap.org/maps/2.0/weather/1h/${owmPrecipLayerOp}/{z}/{x}/{y}?appid=${owmApiKey}`, { attribution: '© OpenWeatherMap', opacity: 0.7 });
-             overlayMaps['<i class="fas fa-cloud-showers-heavy"></i> Precip Forecast (OWM)'] = owmPrecipLayer;
-         } else { console.warn("OWM API key not set or invalid. OWM layer disabled."); }
-         const metRainLayer = metRainControls.getLayer();
-         if (metRainLayer) { overlayMaps['<i class="fa-solid fa-cloud-rain"></i> MET Rain Fcst'] = metRainLayer; console.log("Added MET Rain Forecast layer to layer control."); }
-         else { console.warn("MET Rain Forecast layer not available to add to layer control."); }
-         if (_webcamLayer) { overlayMaps['<i class="fas fa-video"></i> Webcams'] = _webcamLayer; console.log("Added Webcam layer to layer control."); }
-         else { console.warn("Webcam layer instance not available when setting up layer control."); }
-         const obstacleLayerInstanceForControl = obstacleService.getLayer();
-         if (obstacleLayerInstanceForControl) { overlayMaps['<i class="fas fa-broadcast-tower"></i> Obstacles (OSM)'] = obstacleLayerInstanceForControl; console.log("Added Obstacle layer (from service) to layer control."); }
-         else { console.warn("Obstacle layer (from service) not available to add to layer control."); }
-         console.log("DEBUG: overlayMaps object before L.control.layers:", overlayMaps);
-         const layerControl = L.control.layers(baseMaps, overlayMaps, { collapsed: true, position: 'topright' }).addTo(_map);
-         console.log("Layer Control Added.");
-
+        const overlayMaps = {};
+        console.log("Setting up Layer Control Overlays...");
+        if (_particleWindLayer) { overlayMaps["<i class='fas fa-wind'></i> Wind Particles"] = _particleWindLayer; }
+        if (kk7Layers && Object.keys(kk7Layers).length > 0) { Object.assign(overlayMaps, kk7Layers); }
+        if (owmApiKey && owmApiKey !== 'YOUR_OWM_API_KEY' && owmApiKey.length > 10) {
+            owmPrecipLayer = L.tileLayer(`https://maps.openweathermap.org/maps/2.0/weather/1h/${owmPrecipLayerOp}/{z}/{x}/{y}?appid=${owmApiKey}`, { attribution: '© OpenWeatherMap', opacity: 0.7 });
+            overlayMaps['<i class="fas fa-cloud-showers-heavy"></i> Precip Forecast (OWM)'] = owmPrecipLayer;
+        } else { console.warn("OWM API key not set or invalid. OWM layer disabled."); }
+        const metRainLayer = metRainControls.getLayer();
+        if (metRainLayer) { overlayMaps['<i class="fa-solid fa-cloud-rain"></i> MET Rain Fcst'] = metRainLayer; console.log("Added MET Rain Forecast layer to layer control."); }
+        else { console.warn("MET Rain Forecast layer not available to add to layer control."); }
+        if (_webcamLayer) { overlayMaps['<i class="fas fa-video"></i> Webcams'] = _webcamLayer; console.log("Added Webcam layer to layer control."); }
+        else { console.warn("Webcam layer instance not available when setting up layer control."); }
+        const obstacleLayerInstanceForControl = obstacleService.getLayer();
+        if (obstacleLayerInstanceForControl) { overlayMaps['<i class="fas fa-broadcast-tower"></i> Obstacles (OSM)'] = obstacleLayerInstanceForControl; console.log("Added Obstacle layer (from service) to layer control."); }
+        else { console.warn("Obstacle layer (from service) not available to add to layer control."); }
+        console.log("DEBUG: overlayMaps object before L.control.layers:", overlayMaps);
+        const layerControl = L.control.layers(baseMaps, overlayMaps, { collapsed: true, position: 'topright' }).addTo(_map);
+        console.log("Layer Control Added.");
 
         // --- Map Event Listeners ---
-        // ... (obstacle and particle layer listeners as before) ...
         const obstacleLayerFromService = obstacleService.getLayer();
         if (_map && obstacleLayerFromService) {
-            _map.on('layeradd', function(e) { /* ... obstacle add logic ... */ if (e.layer === obstacleLayerFromService) { obstacleService.enableLayer(); const checkbox = document.getElementById('obstacle-toggle'); if (checkbox && !checkbox.checked) checkbox.checked = true; } });
-            _map.on('layerremove', function(e) { /* ... obstacle remove logic ... */ if (e.layer === obstacleLayerFromService) { obstacleService.disableLayer(); const checkbox = document.getElementById('obstacle-toggle'); if (checkbox && checkbox.checked) checkbox.checked = false; } });
+            _map.on('layeradd', function(e) { if (e.layer === obstacleLayerFromService) { obstacleService.enableLayer(); const checkbox = document.getElementById('obstacle-toggle'); if (checkbox && !checkbox.checked) checkbox.checked = true; } });
+            _map.on('layerremove', function(e) { if (e.layer === obstacleLayerFromService) { obstacleService.disableLayer(); const checkbox = document.getElementById('obstacle-toggle'); if (checkbox && checkbox.checked) checkbox.checked = false; } });
             console.log("Map event listeners added for obstacle layer sync.");
         } else { console.warn("Could not add obstacle layer listeners (_map or obstacleLayerFromService missing)."); }
         if (_particleWindLayer && _map) {
@@ -486,138 +461,142 @@ window.updateUICallbacks = updateUICallbacks; // Keep for debug if needed
             console.log("Map event listeners added for particleWindLayer state sync.");
          } else { console.warn("Could not add particle layer listeners (_particleWindLayer or _map missing)."); }
 
-
         // --- Force Search Control Top ---
-        // ... (setTimeout for search z-index as before) ...
-         setTimeout(() => { const searchControlElement = _searchControl?.getContainer(); if (searchControlElement) searchControlElement.style.zIndex = '1001'; }, 10);
+        setTimeout(() => { const searchControlElement = _searchControl?.getContainer(); if (searchControlElement) searchControlElement.style.zIndex = '1001'; }, 10);
 
-        // --- Tracker Initialization Timeout ---
-        // ... (tracker init timeout as before) ...
-         const trackerInitDelay = 500; setTimeout(() => { console.log("Tracker initialization timeout reached (if applicable)."); }, trackerInitDelay);
+        // --- Initialize IGC Tracker Module ---
+        console.log("Main.js: Preparing to initialize IGC Tracker Module...");
+        try {
+            const trackerUiElementsForApp = {
+                fileInput: document.getElementById('trackerFileInput'),
+                timeSlider: document.getElementById('trackerTimeSlider'),
+                playPauseBtn: document.getElementById('trackerPlayPauseBtn'),
+                stepBackBtn: document.getElementById('trackerStepBackBtn'),
+                stepFwdBtn: document.getElementById('trackerStepFwdBtn'),
+                speedSelect: document.getElementById('trackerSpeedSelect'),
+                infoDisplay: document.getElementById('trackerInfoDisplay'),
+                loadingStatus: document.getElementById('trackerLoadingStatus'),
+                altitudeUnitSelect: document.getElementById('trackerAltitudeUnitSelect'),
+                speedUnitSelect: document.getElementById('trackerSpeedUnitSelect'),
+                distanceUnitSelect: document.getElementById('trackerDistanceUnitSelect'),
+                autoPanCheckbox: document.getElementById('trackerAutoPanCheckbox'),
+                barogramCanvas: document.getElementById('trackerBarogramCanvas'),
+                keyFlightInfoGrid: document.getElementById('trackerKeyFlightInfoGrid'),
+                statsPanelToggle: document.getElementById('stats-panel-toggle'),
+                statsPanel: document.getElementById('trackerStatsPanel'),
+                statsContent: document.getElementById('trackerStatsContent'),
+                trackerMapOverlayInfo: document.getElementById('trackerMapOverlayInfo'),
+                liveStatsBar: document.getElementById('trackerLiveStatsBar'),
+                liveSpeed: document.getElementById('trackerLiveSpeed'),
+                liveAltitude: document.getElementById('trackerLiveAltitude'),
+                liveVario: document.getElementById('trackerLiveVario'),
+                liveFlightTime: document.getElementById('trackerLiveFlightTime'),
+                exitTrackerBtn: document.getElementById('exitTrackerBtn')
+            };
 
+            if (_map && tracker && typeof tracker.initializeTracker === 'function') {
+                tracker.initializeTracker(_map, trackerUiElementsForApp, updateUICallbacks);
+                console.log("Main.js: Called tracker.initializeTracker successfully.");
+            } else {
+                if (!_map) { console.error("Main.js: Cannot initialize tracker - _map instance is not ready."); }
+                if (!tracker || typeof tracker.initializeTracker !== 'function') { console.error("Main.js: Cannot initialize tracker - tracker module or initializeTracker function not found/imported."); }
+            }
+        } catch (trackerInitError) {
+            console.error("Main.js: FATAL ERROR during tracker initialization:", trackerInitError);
+        }
+        // --- End Initialize IGC Tracker Module ---
 
         // --- Map Click Listener ---
-        // ... (map click listener as before) ...
-         _map.on('click', (e) => { console.log(`Map clicked at: ${e.latlng}`); calendarUi.hideSiteForecastCalendar(); });
+        _map.on('click', (e) => {
+             // console.log(`Map clicked at: ${e.latlng}`); // Can be verbose
+             // Close calendar only if it's open and not in tracker mode, and click wasn't inside calendar
+             if (!state.isTrackerModeActive && state.selectedSiteIdForCalendar && !e.originalEvent.target.closest('#site-forecast-calendar')) {
+                  console.log("Map click outside calendar detected, hiding calendar.");
+                  updateUICallbacks.hideCalendar?.();
+             }
+        });
 
 
         // --- 4. Fetch Initial Site Data and Populate Map ---
         console.log("Starting site data fetch process...");
-        if (raspService) raspService.initializeService?.(); // Initialize RASP service if needed
-
-        // Initialize Webcam Service (as before)
+        if (raspService) raspService.initializeService?.();
         webcamService.loadWebcams(config.WEBCAM_API_URL || 'data/webcams.json')
             .then(() => console.log("Webcam data loading initiated."))
             .catch(error => console.error("Error initiating webcam data load:", error));
 
-
-        // --- Fetch Data Block (MODIFIED to Initialize UKMO Service) ---
         dataService.fetchInitialData(config.SITES_API_URL, config.WEATHER_API_BASE_URL)
-            .then(async ({ siteDataStore, forecastAvailability }) => { // **** Made async ****
+            .then(async ({ siteDataStore, forecastAvailability }) => {
                 console.log("Site data fetch successful. Populating UI and initializing UKMO service.");
 
-                // --- Initialize UKMO Weather Service AFTER DB is ready and site data is available ---
+                // Initialize UKMO
                 try {
-                    const dbInstancePromise = dataService.getDbInstance();
-                    const dbInstance = await dbInstancePromise; // Wait for DB
-
+                    const dbInstance = await dataService.getDbInstance();
                     if (dbInstance && siteDataStore) {
-                         await ukmoWeatherService.initialize(dbInstance, siteDataStore); // Init UKMO
+                         await ukmoWeatherService.initialize(dbInstance, siteDataStore);
                          console.log("UKMO Weather Service initialized successfully.");
+                         await runUkmoServiceTests(siteDataStore); // Run tests after init
+                    } else { /* ... error log ... */ }
+                } catch (ukmoInitError) { /* ... error log ... */ }
 
-                         // **** Run Tests (Keep this for now) ****
-                         await runUkmoServiceTests(siteDataStore);
-                         // **** ------------------------- ****
-
-                    } else {
-                        console.error("UKMO Service could not be initialized: DB instance or siteDataStore missing after fetchInitialData.");
-                    }
-                } catch (ukmoInitError) {
-                    console.error("Error initializing UKMO Weather Service:", ukmoInitError);
-                }
-                // --- End UKMO Service Initialization ---
-
-
-                // --- Existing UI Population based on fetched data ---
-                if (timeControls.populateDates) {
-                    timeControls.populateDates(forecastAvailability);
-                } else { console.error("timeControls.populateDates function not found!"); }
+                // Populate UI
+                if (timeControls.populateDates) { timeControls.populateDates(forecastAvailability); }
+                else { console.error("timeControls.populateDates function not found!"); }
 
                 if (markerManager.initializeMarkers) {
-                    // Make marker initialization async if it returns a promise
                     await markerManager.initializeMarkers(_map, mapService.layers, siteDataStore, updateUICallbacks);
                     console.log("Marker initialization finished.");
                 } else { console.error("markerManager.initializeMarkers function not found!"); }
-
 
                 if (_searchControl) _searchControl.updateSearchIndex();
                 else console.warn("Main.js: _searchControl instance not found when trying to update index.");
 
                 console.log("DEBUG: Calling initial updateUICallbacks.refreshAll()");
-                if (updateUICallbacks.refreshAll) updateUICallbacks.refreshAll(); // Initial UI refresh
+                if (updateUICallbacks.refreshAll) updateUICallbacks.refreshAll();
                 else console.error("updateUICallbacks.refreshAll function not defined!");
 
                 console.log("Application initialized successfully (UI population complete). Hiding indicator.");
-                if (loadingIndicator) {
-                    loadingIndicator.style.display = 'none'; // Hide loader last
-                }
+                if (loadingIndicator) loadingIndicator.style.display = 'none';
 
-            }) // <<< End of .then() block
-            .catch(error => { // <<< Start of .catch() for fetchInitialData
-                console.error("FATAL ERROR during initial site data load or subsequent init:", error); // Updated msg
-                if (loadingIndicator) { /* ... hide loader ... */ }
-                if (mapDiv) { /* ... show error in map div ... */ }
+            })
+            .catch(error => {
+                console.error("FATAL ERROR during initial site data load or subsequent init:", error);
+                if (loadingIndicator) { loadingIndicator.style.display = 'none'; }
+                if (mapDiv) { mapDiv.innerHTML = `<p style='color: red; text-align: center; padding: 20px;'>Error: ${error.message || 'Failed to load site data.'}</p>`; }
+                // Disable controls on error
                 try {
-                    // Disable ALL controls on any major failure
-                    timeControls.disable?.();
-                    windFilter.disable?.();
-                    if(starFilter) starFilter.disable?.();
-                    raspUi.disable?.();
-                    particleUi.disable?.();
-                    calendarUi.disable?.();
-                    airspaceControls.disableControls?.();
-                    if(_searchControl) _searchControl.disable?.();
-                    if(_loadIgcControl?.getContainer()) _loadIgcControl.getContainer().classList.add('disabled');
+                    timeControls.disable?.(); windFilter.disable?.(); starFilter?.disable?.();
+                    raspUi.disable?.(); particleUi.disable?.(); calendarUi.disable?.();
+                    airspaceControls.disableControls?.(); _searchControl?.disable?.();
+                    _loadIgcControl?.getContainer()?.classList.add('disabled');
                     const obstacleToggleCheckbox = document.getElementById('obstacle-toggle');
                     if(obstacleToggleCheckbox?.parentElement) obstacleToggleCheckbox.disabled = true;
-                    metRainControls.disableOnError?.(); // Disable MET Rain
-                    ukmoDisplayPanel.clearPanel?.(false); // Hide UKMO panel on error
-                    // Consider adding ukmoDisplayPanel.disable() if needed
+                    metRainControls.disableOnError?.(); ukmoDisplayPanel.clearPanel?.(false);
                     console.warn("UI controls disabled due to data load failure (attempted).");
-                } catch (disableError) { /* ... log disable error ... */ }
-            }); // <<< End of .catch() for fetchInitialData
+                } catch (disableError) { console.error("Error disabling UI:", disableError); }
+            });
 
-
-    // IMPORTANT: The main try block ends HERE, before the outer catch block
     } catch (initializationError) {
         console.error("FATAL ERROR during application initialization:", initializationError);
-        if (loadingIndicator) { /* ... hide loader ... */ }
-        if (mapDiv) { /* ... show error in map div ... */ }
-        try {
-             // Disable ALL controls on any major failure
-             timeControls.disable?.();
-             windFilter.disable?.();
-             if(starFilter) starFilter.disable?.();
-             raspUi.disable?.();
-             particleUi.disable?.();
-             calendarUi.disable?.();
-             airspaceControls.disableControls?.();
-             if(_searchControl) _searchControl.disable?.();
-             if(_loadIgcControl?.getContainer()) _loadIgcControl.getContainer().classList.add('disabled');
+        if (loadingIndicator) { loadingIndicator.style.display = 'none'; }
+        if (mapDiv) { mapDiv.innerHTML = `<p style='color: red; text-align: center; padding: 20px;'>Application failed: ${initializationError.message || 'Unknown error'}</p>`; }
+        // Disable controls on error
+         try {
+             timeControls.disable?.(); windFilter.disable?.(); starFilter?.disable?.();
+             raspUi.disable?.(); particleUi.disable?.(); calendarUi.disable?.();
+             airspaceControls.disableControls?.(); _searchControl?.disable?.();
+             _loadIgcControl?.getContainer()?.classList.add('disabled');
              const obstacleToggleCheckbox = document.getElementById('obstacle-toggle');
              if(obstacleToggleCheckbox?.parentElement) obstacleToggleCheckbox.disabled = true;
-             metRainControls.disableOnError?.(); // Disable MET Rain
-             ukmoDisplayPanel.clearPanel?.(false); // Hide UKMO panel on error
+             metRainControls.disableOnError?.(); ukmoDisplayPanel.clearPanel?.(false);
              console.warn("UI controls disabled due to initialization failure (attempted).");
-        } catch (disableError) { /* ... log disable error ... */ }
-    } // <<< End of outer catch(initializationError)
-
+         } catch (disableError) { console.error("Error disabling UI:", disableError); }
+    }
 }); // <<< END OF DOMContentLoaded Listener
 
 
 // --- Event Handlers ---
-// ... (handleOpenMeteoToggleChange as before) ...
 function handleOpenMeteoToggleChange(event) {
+    // ... (handleOpenMeteoToggleChange - unchanged) ...
     const isEnabled = event.target.checked;
     state.setOpenMeteoIndicatorEnabled(isEnabled);
     const openPopupSiteId = state.currentlyOpenPopupSiteId;
@@ -637,14 +616,15 @@ function handleOpenMeteoToggleChange(event) {
     }
 }
 
-// --- Test Function (Keep for Debugging) ---
+// --- Test Function ---
 async function runUkmoServiceTests(siteDataStore) {
+    // ... (runUkmoServiceTests - unchanged) ...
     console.log("--- Running UKMO Service Basic Tests ---");
-    if (!siteDataStore || siteDataStore.size === 0) { /* ... */ return; }
+    if (!siteDataStore || siteDataStore.size === 0) { return; }
     const testSiteId = siteDataStore.keys().next().value;
-    if (!testSiteId) { /* ... */ return; }
+    if (!testSiteId) { return; }
     console.log(`UKMO Test: Using Site ID: ${testSiteId}`);
-    try { /* ... test getUkmoDataForSite ... */
+    try {
         console.log(`UKMO Test 1: Calling getUkmoDataForSite(${testSiteId})...`);
         const siteData = await ukmoWeatherService.getUkmoDataForSite(testSiteId);
         if (siteData) {
@@ -656,7 +636,7 @@ async function runUkmoServiceTests(siteDataStore) {
     const testDate = state.selectedGlobalDate; const testHour = state.selectedGlobalHour;
     if (testDate && testHour !== null) {
         console.log(`UKMO Test 2: Calling getUkmoDataForSiteAndHour(${testSiteId}, ${testDate}, ${testHour})...`);
-        try { /* ... test getUkmoDataForSiteAndHour ... */
+        try {
             const hourlyData = await ukmoWeatherService.getUkmoDataForSiteAndHour(testSiteId, testDate, testHour);
             if (hourlyData) {
                 console.log(`UKMO Test 2 SUCCESS: Received hourly data for site ${testSiteId} at ${testDate} ${testHour}:00 (UK Local):`);
@@ -669,9 +649,9 @@ async function runUkmoServiceTests(siteDataStore) {
     console.log("--- Finished UKMO Service Basic Tests ---");
 }
 
-// --- Helper function for tracker UI elements (keep if tracker uses it) ---
-// ... (getExpectedIdForKey function as before) ...
+// --- Helper function ---
 function getExpectedIdForKey(key) {
+    // ... (getExpectedIdForKey - unchanged) ...
     const idMap = {
         fileInput: 'trackerFileInput', barogramCanvas: 'trackerBarogramCanvas', timeSlider: 'trackerTimeSlider',
         infoDisplay: 'trackerInfoDisplay', keyFlightInfoGrid: 'trackerKeyFlightInfoGrid', playPauseBtn: 'trackerPlayPauseBtn',

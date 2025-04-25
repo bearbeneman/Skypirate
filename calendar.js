@@ -6,7 +6,8 @@ import {
     formatDateGB,
     isUkDst,
     degreesToSectorIndex,
-    degreesToCompass
+    degreesToCompass,
+    getSuitableDirections // **** ADDED Import ****
 } from './utils.js';
 import { KNOTS_TO_MPH, KPH_TO_MPH } from './config.js';
 import * as timeControls from './timeControls.js';
@@ -112,7 +113,8 @@ export function hideSiteForecastCalendar() {
             if (calendarHeaderSiteName) calendarHeaderSiteName.textContent = '';
             if (calendarHeaderDate) calendarHeaderDate.textContent = '';
             // Clear the extra info container as well
-            const extraInfoContainer = document.getElementById('calendar-header-extra-info'); // Find it again just in case
+            // Find it again just in case it was removed/recreated (unlikely but safer)
+            const extraInfoContainer = document.getElementById('calendar-header-extra-info');
             if (extraInfoContainer) extraInfoContainer.innerHTML = '';
             console.log("Calendar fully hidden and content/extra info cleared via timeout.");
         }
@@ -226,7 +228,8 @@ function generateRainIconHTML(rainAmount) {
 }
 
 /**
- * Updates the content of the site forecast calendar, arranging the header into a single row.
+ * Updates the content of the site forecast calendar, arranging the header into a single row
+ * and including additional site details.
  */
 export function updateSiteForecastCalendar() {
     // Check if module is initialized
@@ -260,9 +263,7 @@ export function updateSiteForecastCalendar() {
     if (!leftGroup) {
         leftGroup = document.createElement('div');
         leftGroup.className = 'header-left-group';
-        // Insert the group at the beginning of the header
         headerElement.insertBefore(leftGroup, headerElement.firstChild);
-        // Move Button and Name into the left group if they aren't already
         if (calendarCloseButton.parentNode !== leftGroup) leftGroup.appendChild(calendarCloseButton);
         if (calendarHeaderSiteName.parentNode !== leftGroup) leftGroup.appendChild(calendarHeaderSiteName);
     }
@@ -273,11 +274,9 @@ export function updateSiteForecastCalendar() {
         extraInfoContainer = document.createElement('div');
         extraInfoContainer.id = 'calendar-header-extra-info';
         extraInfoContainer.className = 'header-extra-info';
-        // Insert it after the left group
         leftGroup.insertAdjacentElement('afterend', extraInfoContainer);
         calendarHeaderExtraInfo = extraInfoContainer; // Cache reference
     } else {
-         // Ensure it's still positioned after the left group
          if (extraInfoContainer.previousSibling !== leftGroup) {
              leftGroup.insertAdjacentElement('afterend', extraInfoContainer);
          }
@@ -285,20 +284,18 @@ export function updateSiteForecastCalendar() {
 
     // Ensure Date is positioned correctly (last element, direct child of header)
     if (calendarHeaderDate.parentNode !== headerElement) {
-        headerElement.appendChild(calendarHeaderDate); // Append to move it to the end
+        headerElement.appendChild(calendarHeaderDate);
     } else if (calendarHeaderDate !== headerElement.lastElementChild) {
-         headerElement.appendChild(calendarHeaderDate); // Move to end if not already last
+         headerElement.appendChild(calendarHeaderDate);
     }
     // --- End Structure Setup ---
 
 
-    // --- Clear/Update based on site validity --- 
+    // --- Clear/Update based on site validity ---
     if (!siteId || !site) {
-        // Clear header content
-        calendarHeaderSiteName.textContent = ''; // Name is inside leftGroup
+        calendarHeaderSiteName.textContent = '';
         calendarHeaderDate.textContent = '';
         if (extraInfoContainer) extraInfoContainer.innerHTML = ''; // Clear extra info
-        // Clear main content area
         if (calendarContent) calendarContent.innerHTML = '';
         return;
     }
@@ -313,28 +310,45 @@ export function updateSiteForecastCalendar() {
     const siteLon = typeof site.lng === 'number' ? site.lng : null;
     const altitude = site.alt !== null && site.alt !== undefined ? `${site.alt} m ASL` : 'N/A';
 
-    // Altitude
+    // **** ADDED/MODIFIED: Get Club, Wind Dir, Coords ****
+    const clubName = site.clubName || 'N/A';
+    const suitableWinds = getSuitableDirections(site.wind_dir); // Use imported util
+    const coordsText = (siteLat !== null && siteLon !== null)
+        ? `(${siteLat.toFixed(4)}, ${siteLon.toFixed(4)})`
+        : '(N/A)';
+
+    // Altitude (already existed)
     extraInfoHtml += `<span class="header-info-item altitude">Elev: ${altitude}</span>`;
 
-    // Map Links
+    // **** ADDED: Club Info ****
+    //extraInfoHtml += `<span class="header-info-item club-info" title="Club Name">Club: ${clubName}</span>`;
+
+    // **** ADDED: Suitable Wind Info ****
+    extraInfoHtml += `<span class="header-info-item wind-info" title="Suitable Wind Directions">Suitable Wind Dir: ${suitableWinds}</span>`;
+
+     // **** ADDED: Coordinates Info ****
+    extraInfoHtml += `<span class="header-info-item coords-info" title="Coordinates">Coords: ${coordsText}</span>`;
+
+
+    // Map Links (already existed)
     if (siteLat !== null && siteLon !== null) {
         const googleMapsLogoUrl = './images/gmaps.png';
         const what3WordsLogoUrl = './images/w3w.png';
         const osMapsLogoUrl = './images/osmaps.png';
-        const iconStyle = "height: 20px; width: auto; vertical-align: middle; border: none; margin: 0 1px;"; // Adjusted style
+        const iconStyle = "height: 20px; width: auto; vertical-align: middle; border: none; margin: 0 1px;";
 
         const googleMapsUrl = `https://www.google.com/maps?q=${siteLat},${siteLon}`;
         const what3WordsUrl = `https://what3words.com/${siteLat},${siteLon}`;
         const osMapsUrl = `https://explore.osmaps.com/pin?lat=${siteLat}&lon=${siteLon}&z=16`;
 
-        extraInfoHtml += `<span class="header-info-item map-links">`;
+        extraInfoHtml += `<span class="header-info-item map-links">`; // Add class for potential styling
         extraInfoHtml += `<a href="${googleMapsUrl}" target="_blank" rel="noopener noreferrer" title="View on Google Maps"><img src="${googleMapsLogoUrl}" alt="G" style="${iconStyle}"></a>`;
         extraInfoHtml += `<a href="${what3WordsUrl}" target="_blank" rel="noopener noreferrer" title="View on What3Words"><img src="${what3WordsLogoUrl}" alt="W" style="${iconStyle}"></a>`;
         extraInfoHtml += `<a href="${osMapsUrl}" target="_blank" rel="noopener noreferrer" title="View on OS Maps"><img src="${osMapsLogoUrl}" alt="OS" style="${iconStyle}"></a>`;
         extraInfoHtml += `</span>`;
     }
 
-    // Webcam Link
+    // Webcam Link (already existed)
     if (siteLat !== null && siteLon !== null && webcamService.isLoaded()) {
         const closestWebcam = webcamService.findClosestWebcam(siteLat, siteLon, 50);
         if (closestWebcam) {
@@ -343,12 +357,12 @@ export function updateSiteForecastCalendar() {
             const iconStyle = "color: #6c757d; font-size: 1em; vertical-align: middle; margin-right: 2px;";
             extraInfoHtml += `<a href="${closestWebcam.pageUrl}" target="_blank" rel="noopener noreferrer" title="Nearby Webcam: ${closestWebcam.shortTitle || closestWebcam.title} ${distanceText}" class="header-info-item webcam-link" style="${linkStyle}">` +
                              `<i class="fas fa-video" style="${iconStyle}"></i>` +
-                             ` Webcam ${distanceText}` +
+                             ` Nearby Webcam ${distanceText}` + // Use   for spacing
                              `</a>`;
         }
     }
 
-    // Update the container's content
+    // Update the container's content with all info
     if (extraInfoContainer) {
         extraInfoContainer.innerHTML = extraInfoHtml;
     }
@@ -365,6 +379,7 @@ export function updateSiteForecastCalendar() {
     }
     const weatherData = siteEntry.weatherData;
     if (!weatherData || weatherData.error || !Array.isArray(weatherData.weather) || weatherData.weather.length === 0) {
+        const siteName = site ? site.name : `Site ${siteId}`; // Use siteName for message
         const message = weatherData?.error
             ? `Error loading forecast: ${weatherData.error}`
             : `No forecast data available for ${siteName} on ${formatDateGB(currentDateStr)}.`;

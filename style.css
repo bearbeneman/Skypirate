@@ -29,6 +29,8 @@
     --calendar-height-with-margin: 185px; /* Default fallback */
     /* CSS variable for tracker panel height */
     --tracker-bottom-panel-height: 200px; /* Default fallback */
+    /* For Compass Animation */
+    --target-rotation: 0deg; /* Default rotation */
 }
 
 html, body {
@@ -62,9 +64,48 @@ html, body {
 
 hr { border: none; border-top: 1px solid var(--border-color); margin: 1rem 0; opacity: 0.25; }
 
+/* --- Row/Col Basic Layout (From Tracker Section) --- */
+.row { display: flex; flex-wrap: wrap; margin-right: -15px; margin-left: -15px; }
+.col-lg-4, .col-lg-8, .col-md-4, .col-md-3, .col-6 { position: relative; width: 100%; padding-right: 15px; padding-left: 15px; box-sizing: border-box; }
+.col-6 { flex: 0 0 auto; width: 50%; }
+@media (min-width: 768px) { /* md breakpoint */
+    .col-md-3 { flex: 0 0 auto; width: 25%; }
+    .col-md-4 { flex: 0 0 auto; width: 33.3333%; }
+}
+@media (min-width: 992px) { /* lg breakpoint */
+    .col-lg-4 { flex: 0 0 auto; width: 33.3333%; }
+    .col-lg-8 { flex: 0 0 auto; width: 66.6667%; }
+    .stats-grid .col-lg-3 { flex: 0 0 auto; width: 25%; } /* Specific to stats grid */
+}
+
 /* =================================== */
 /* --- Top Control Bars --- */
 /* =================================== */
+
+/* Global Time Controls */
+#global-time-controls {
+    padding: 10px; background-color: #f4f4f4; border-bottom: 1px solid #ccc;
+    display: flex; gap: 15px; row-gap: 5px; justify-content: center; align-items: center;
+    flex-wrap: wrap; flex-shrink: 0; text-align: center; /* Added text-align */
+}
+#global-time-controls label.global-control-label { font-weight: bold; margin-right: 5px; }
+#global-time-controls select, #global-time-controls button { padding: 5px; border: 1px solid #ccc; border-radius: 4px; vertical-align: middle; }
+#global-time-status { font-size: 0.9em; color: #333; margin-left: 15px; font-style: italic; }
+#global-time-controls button:disabled, #global-time-controls select:disabled { opacity: 0.6; cursor: not-allowed; }
+#global-date-boxes { display: flex; gap: 5px; align-items: center; flex-wrap: wrap; }
+#global-date-boxes .placeholder { font-style: italic; color: #888; padding: 5px 10px; }
+.global-date-box { border: 1px solid #ccc; border-radius: 4px; padding: 4px 8px; min-width: 65px; text-align: center; font-size: 0.8em; cursor: pointer; background-color: #f9f9f9; flex-shrink: 0; transition: background-color 0.2s, border-color 0.2s; line-height: 1.3; user-select: none; }
+.global-date-box span { display: block; white-space: nowrap; }
+.global-date-box .day-name { font-weight: bold; }
+.global-date-box .date-str { font-size: 0.9em; color: #555; }
+.global-date-box:hover { background-color: #eee; }
+.global-date-box.selected { border-color: #007bff; background-color: #e7f3ff; border-width: 2px; padding: 3px 7px; }
+#global-hour-boxes { display: flex; gap: 4px; align-items: center; flex-wrap: wrap; }
+#global-hour-boxes .placeholder { font-style: italic; color: #888; padding: 5px 10px; }
+.global-hour-box { border: 1px solid #ccc; border-radius: 4px; padding: 4px 8px; min-width: 45px; text-align: center; font-size: 0.85em; cursor: pointer; background-color: #f9f9f9; flex-shrink: 0; transition: background-color 0.2s, border-color 0.2s; line-height: 1.3; user-select: none; font-weight: bold; }
+.global-hour-box:hover { background-color: #eee; }
+.global-hour-box.selected { border-color: #007bff; background-color: #e7f3ff; border-width: 2px; padding: 3px 7px; color: #0056b3; }
+#global-hour-boxes.disabled .placeholder { color: #aaa; cursor: not-allowed; }
 
 /* Wind Speed Filter Controls */
 #wind-speed-filter-controls {
@@ -72,6 +113,7 @@ hr { border: none; border-top: 1px solid var(--border-color); margin: 1rem 0; op
     display: flex; gap: 10px; row-gap: 5px; justify-content: center; align-items: center;
     flex-wrap: wrap; font-size: 0.9em; flex-shrink: 0;
     margin-left: auto; margin-right: auto; max-width: 95%; box-sizing: border-box;
+    text-align: center; /* Added */
 }
 #wind-speed-filter-controls label { margin-right: 3px; vertical-align: middle;}
 #wind-speed-filter-controls input[type="checkbox"] { margin-right: 5px; vertical-align: middle;}
@@ -92,45 +134,69 @@ hr { border: none; border-top: 1px solid var(--border-color); margin: 1rem 0; op
 #airspace-controls #airspace-altitude-filter { width: 100px; }
 #airspace-controls #airspace-altitude-value { min-width: 60px; font-family: monospace; text-align: right; }
 #airspace-controls #rasp-opacity-control,
-#airspace-controls #precip-opacity-control { display: inline-flex; align-items: center; gap: 5px; }
+#airspace-controls #precip-opacity-control { /* Combined rule */
+    display: inline-flex; align-items: center; gap: 5px;
+}
 #airspace-controls #rasp-opacity-control label,
-#airspace-controls #precip-opacity-control label { font-weight: normal; }
+#airspace-controls #precip-opacity-control label { /* Combined rule */
+    font-weight: normal;
+}
 #airspace-controls #rasp-opacity-control input[type="range"],
-#airspace-controls #precip-opacity-control input[type="range"] { width: 80px; }
+#airspace-controls #precip-opacity-control input[type="range"] { /* Combined rule */
+    width: 80px;
+}
 #airspace-controls #rasp-opacity-control span,
-#airspace-controls #precip-opacity-control span { min-width: 35px; font-family: monospace; font-size: 0.9em; text-align: right; }
+#airspace-controls #precip-opacity-control span { /* Combined rule */
+    min-width: 35px; font-family: monospace; font-size: 0.9em; text-align: right;
+}
 #airspace-controls #rasp-overlay-status,
-#airspace-controls #precip-status { font-size: 0.9em; color: #555; font-style: italic; margin-left: 5px; }
+#airspace-controls #precip-status { /* Combined rule */
+    font-size: 0.9em; color: #555; font-style: italic; margin-left: 5px;
+}
 
 /* RASP Corner Controls (Hidden by default via JS/Config flag) */
-#rasp-corner-controls { display: none; padding: 10px; background-color: #ddeeff; border-bottom: 1px solid #ccc; font-size: 0.85em; flex-shrink: 0; }
+#rasp-corner-controls {
+    display: none; padding: 10px; background-color: #ddeeff; border-bottom: 1px solid #ccc;
+    font-size: 0.85em; flex-shrink: 0;
+}
 #rasp-corner-controls input[type="range"] { width: 360px; vertical-align: middle; margin: 0 3px; }
 #rasp-corner-controls span[id$="-value"] { display: inline-block; min-width: 40px; font-family: monospace; text-align: right; }
 #rasp-corner-controls div { margin-bottom: 5px; }
 #rasp-corner-controls button { padding: 5px 10px; }
 #rasp-corner-status { margin-left: 15px; font-style: italic; color: #555; }
 
+/* UKMO Display Panel */
+#ukmo-display-panel {
+    background-color: #e8f4f8; border-bottom: 1px solid #b0d0e0; padding: 8px 15px;
+    font-size: 0.85em; text-align: center; display: flex; flex-wrap: wrap;
+    justify-content: center; align-items: center; gap: 10px 20px; flex-shrink: 0;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05); transition: background-color 0.3s ease;
+    min-height: 30px; box-sizing: border-box;
+}
+#ukmo-display-panel.loading { background-color: #f0f0f0; color: #777; font-style: italic; }
+#ukmo-display-panel.error { background-color: #ffe0e0; color: #a00; font-weight: bold; }
+.ukmo-placeholder { color: #668; font-style: italic; width: 100%; }
+.ukmo-item { display: inline-flex; align-items: center; gap: 5px; padding: 2px 5px; background-color: rgba(255, 255, 255, 0.4); border-radius: 3px; }
+.ukmo-item i.fas { color: #336699; font-size: 1.1em; width: 1.1em; text-align: center; }
+.ukmo-value { font-weight: bold; font-family: monospace; white-space: nowrap; }
+
 /* =================================== */
 /* --- Leaflet Popups --- */
 /* =================================== */
 
-/* --- DESKTOP Popup Styles --- */
+/* --- Base Popup Styles --- */
 .leaflet-popup-content-wrapper {
     max-width: 450px; /* Default max width */
     background: var(--white);
     border-radius: 5px;
     box-shadow: 0 3px 14px rgba(0,0,0,0.4);
 }
-
 .leaflet-popup-content {
-    max-height: none;
-    overflow-y: visible;
+    max-height: none; /* Allow content to determine height */
+    overflow-y: visible; /* Allow content to overflow */
     margin: 13px 19px; /* Leaflet default-like margin */
-    /* Optional desktop height limit */
-    /* max-height: 600px; */
-    /* overflow-y: auto; */
 }
-/* Wrapper added inside popup content */
+/* Wrapper added inside popup content if needed */
 .leaflet-popup-content-custom-wrapper {
     margin: 0; /* Remove default margin if parent handles padding */
 }
@@ -159,7 +225,14 @@ hr { border: none; border-top: 1px solid var(--border-color); margin: 1rem 0; op
     content: ''; position: absolute; top: 50%; left: 50%; width: 10px; height: 10px;
     background-color: #333; border-radius: 50%; transform: translate(-50%, -50%); z-index: 2;
 }
-/* Needle (DIV for Popup) */
+/* Background SVG for popup compass */
+.popup-compass::before {
+    content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    background-image: url('images/compass.svg'); /* Ensure path is correct */
+    background-size: contain; background-position: center; background-repeat: no-repeat;
+    z-index: 0; /* Behind needle */
+}
+/* Needle (Used in Popup & On-Map) */
 .popup-compass-needle {
     width: 8%; height: 55%; background-color: red; position: absolute;
     left: 46%; bottom: 50%; transform-origin: center bottom;
@@ -167,24 +240,41 @@ hr { border: none; border-top: 1px solid var(--border-color); margin: 1rem 0; op
     z-index: 1;
     /* Rotation via CSS variable */
     transform: rotate(var(--target-rotation, 0deg));
-    /* transition: transform 0.4s ease-out; /* Optional */
+    /* NO transition here by default, animation class handles movement */
 }
-/* Animation Class */
+
+/* --- Needle Animation (Common for Popup & On-Map) --- */
+@keyframes needle-spin-bounce {
+  0%   { transform: rotate(calc(var(--target-rotation) - 30deg)); opacity: 0.5; }
+  65%  { transform: rotate(calc(var(--target-rotation) + 15deg)); opacity: 1; }
+  85%  { transform: rotate(calc(var(--target-rotation) - 5deg)); }
+  100% { transform: rotate(var(--target-rotation)); opacity: 1; }
+}
 .popup-compass-needle.animate-needle {
-   /* animation: needle-spin-bounce 0.7s cubic-bezier(0.175, 0.885, 0.320, 1.275) forwards; */
+  animation: needle-spin-bounce 0.7s cubic-bezier(0.175, 0.885, 0.320, 1.275) forwards;
+  /* Ensure origin is set */
+  transform-origin: center bottom;
 }
+
 
 /* Popup Wind/Rain Info */
 .popup-wind-info, .popup-rain-info {
     font-size: 0.9em; margin-top: 5px; color: #000; width: 100%; text-align: center;
 }
-.popup-rain-info { margin-top: 4px; color: #000; }
+.popup-rain-info { margin-top: 4px; /* Slight adjustment */ }
 .popup-rain-icon { margin-right: 4px; color: #4682B4; font-size: 1.0em; vertical-align: middle; }
 
 /* Popup Webcam Link */
+.leaflet-popup-content .popup-webcam-link { text-decoration: none; color: #0078A8; }
 .leaflet-popup-content .popup-webcam-link:hover { text-decoration: underline; }
-.leaflet-popup-content .popup-webcam-link i.fa-video { color: #6c757d; transition: color 0.2s ease-in-out; font-size: 1.1em; vertical-align: middle; }
+.leaflet-popup-content .popup-webcam-link i.fa-video { color: #6c757d; transition: color 0.2s ease-in-out; font-size: 1.1em; vertical-align: middle; margin-right: 3px; }
 .leaflet-popup-content .popup-webcam-link:hover i.fa-video { color: #0078A8; }
+
+/* Fix for popup hiding during map animation */
+.leaflet-fade-anim .leaflet-map-pane .leaflet-popup {
+    display: none; /* Corrected from Display: none; - Might be needed */
+}
+
 
 /* =================================== */
 /* --- On-Map Compass --- */
@@ -192,38 +282,73 @@ hr { border: none; border-top: 1px solid var(--border-color); margin: 1rem 0; op
 
 /* The L.DivIcon container */
 .on-map-compass-div-icon {
-    transform: translateY(47px); /* ADJUST 47px = marker height + gap */
+    position: relative; /* For absolute positioning of text */
+    background-color: transparent;
+    overflow: visible; /* Allow text overflow */
+    pointer-events: none; /* Container doesn't block map */
     transform-origin: 50% 50%;
-    pointer-events: none; /* Handled by pane */
+    /* Offset is typically handled by iconAnchor in JS */
 }
 /* Ensure internal popup classes work within the divIcon */
-.on-map-compass-div-icon .popup-compass-container { width: 100%; height: 100%; position: relative; }
+.on-map-compass-div-icon .popup-compass-container {
+    width: 100%; height: 100%; position: relative;
+    pointer-events: none; /* Compass itself isn't clickable */
+}
+/* Compass visual style */
 .on-map-compass-div-icon .popup-compass {
     width: 100%; height: 100%; border: 2px solid rgba(50, 50, 50, 0.7);
     border-radius: 50%; position: relative; background: #eee; /* Fallback */
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4); overflow: hidden;
+    margin: 0; /* Override margin: auto from popup style */
+}
+/* Background SVG for on-map compass */
+.on-map-compass-div-icon .popup-compass::before {
+    content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    background-image: url('images/compass.svg'); /* Ensure path is correct */
+    background-size: contain; background-position: center; background-repeat: no-repeat;
+    z-index: 0;
 }
 .on-map-compass-div-icon .popup-compass::after { /* Center dot */
     content: ''; position: absolute; top: 50%; left: 50%; width: 8px; height: 8px;
     background-color: rgba(30, 30, 30, 0.8); border-radius: 50%;
     transform: translate(-50%, -50%); z-index: 2;
 }
-.on-map-compass-div-icon .popup-compass-needle {
-    /* Styles are identical to the popup needle above */
-    width: 8%; height: 55%; background-color: red; position: absolute;
-    left: 46%; bottom: 50%; transform-origin: center bottom;
-    border-radius: 5px 5px 0 0; clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
-    z-index: 1; transform: rotate(var(--target-rotation, 0deg));
-    /* transition: transform 0.4s ease-out; */ /* REMOVED Transition for stability */
+/* Needle uses the same .popup-compass-needle class and animation */
+
+/* Text below the on-map compass */
+.on-map-compass-text {
+    position: absolute;
+    bottom: -33px; /* Adjust distance below icon */
+    left: 50%;      /* Center horizontally */
+    transform: translateX(-50%); /* Fine-tune centering */
+    width: auto;    /* Let text determine width */
+    text-align: center;
+    font-size: 20px;
+    font-weight: 600;
+    line-height: 1;
+    pointer-events: none;
+    text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff;
+    white-space: nowrap;
+    color: #000; /* Set default, can be overridden inline */
 }
-.on-map-compass-div-icon .popup-compass-needle.animate-needle {
-   /* animation: needle-spin-bounce 0.7s cubic-bezier(0.175, 0.885, 0.320, 1.275) forwards; */
+
+/* Custom Pane for On-Map Compasses */
+.leaflet-onMapCompass-pane {
+    z-index: 500 !important; /* Ensure it's above markers but below popups/controls */
+    pointer-events: none; /* Pane itself doesn't capture events */
 }
 
 
 /* ======================================== */
 /* --- Site Forecast Calendar --- */
 /* ======================================== */
+
+#calendar-content .speed {
+   /* Your styles here */
+   font-weight: bold;
+   color: #0078a8;
+   font-size:1.2em;
+}
 
 /* --- Main Panel Container --- */
 #site-forecast-calendar {
@@ -232,9 +357,12 @@ hr { border: none; border-top: 1px solid var(--border-color); margin: 1rem 0; op
     box-shadow: 0 -2px 5px rgba(0,0,0,0.1); z-index: 900;
     padding: 5px 10px 10px 10px; box-sizing: border-box;
     max-height: 180px; display: flex; flex-direction: column;
-    transform: translateY(100%); transition: transform 0.3s ease-in-out;
+    transform: translateY(100%); /* Start hidden */
+    transition: transform 0.3s ease-in-out; /* Animation */
 }
-body.calendar-visible #site-forecast-calendar { transform: translateY(0); }
+body.calendar-visible #site-forecast-calendar {
+    transform: translateY(0); /* Slide into view */
+}
 
 /* --- Calendar Header (Single Row) --- */
 .calendar-header {
@@ -245,16 +373,23 @@ body.calendar-visible #site-forecast-calendar { transform: translateY(0); }
 .header-left-group { display: flex; align-items: center; gap: 8px; flex-shrink: 1; min-width: 0; }
 .header-left-group #calendar-close-button { background: none; border: none; font-size: 1.1em; line-height: 1; cursor: pointer; padding: 0; color: #666; flex-shrink: 0; }
 .header-left-group #calendar-close-button:hover { color: #000; }
-.header-left-group #calendar-site-name { font-size: 1.1em; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.header-left-group #calendar-site-name { font-size: 1.5em; font-weight: bold; white-space: nowrap;  text-overflow: ellipsis; }
 .header-extra-info { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 5px 10px; font-size: 0.85em; color: #444; flex-grow: 1; flex-shrink: 1; min-width: 100px; text-align: center; }
-.header-info-item { white-space: nowrap; display: inline-flex; align-items: center; gap: 3px; }
-.header-info-item.altitude { font-weight: 500; }
+.header-info-item { white-space: nowrap; display: inline-flex; align-items: center; gap: 3px; vertical-align: middle; }
+.header-info-item.altitude,
+.header-extra-info .club-info,
+.header-extra-info .wind-info,
+.header-extra-info .coords-info { font-weight: 500; }
 .header-info-item.map-links img { height: 20px; width: auto; vertical-align: middle; margin: 0 1px; border: none; opacity: 0.9; }
 .header-info-item.map-links img:hover { opacity: 1; }
 .header-info-item.webcam-link { font-size: 1.1em; color: #0078A8; text-decoration: none; }
 .header-info-item.webcam-link:hover { text-decoration: underline; }
 .header-info-item.webcam-link i { color: #6c757d; font-size: 1.1em; }
-#calendar-date { font-size: 0.95em; font-weight: normal; color: #555; white-space: nowrap; flex-shrink: 0; }
+#calendar-date { font-size: 1.2em; font-weight: 600; color: #555; white-space: nowrap; flex-shrink: 0; }
+/* Vertical separator for info items */
+.header-extra-info .header-info-item:not(:first-child) {
+    border-left: 1px solid #ccc; padding-left: 10px;
+}
 
 /* --- Calendar Content (Hour Boxes) --- */
 #calendar-content { justify-content: center; display: flex; gap: 5px; overflow-x: auto; overflow-y: hidden; padding-bottom: 5px; flex-grow: 1; scrollbar-width: thin; scrollbar-color: #ccc #f0f0f0; align-items: stretch; min-height: 80px; }
@@ -266,42 +401,19 @@ body.calendar-visible #site-forecast-calendar { transform: translateY(0); }
 .calendar-hour-box span { margin-bottom: 1px; white-space: nowrap; line-height: 1.3; }
 .calendar-hour-box .time { font-weight: bold; font-size: 1.2em; order: 1; }
 .calendar-hour-box .speed, .calendar-hour-box .direction { display: inline; font-size: 0.95em; order: 2; color: #333; }
-.calendar-hour-box .speed:not(:empty)::after { content: " / "; margin: 0 1px; color: #888; }
+
 .calendar-hour-box .direction { color: #555; }
 .calendar-stars-container, .calendar-rain-icon-container { order: 3; margin-top: 3px; height: 1em; line-height: 1; white-space: nowrap; display: inline-block; vertical-align: middle; }
 .calendar-stars-container { margin-right: 4px; }
 .calendar-star { font-size: 0.9em; color: #f0ad4e; margin: 0 1px; vertical-align: middle; }
 .calendar-star.empty, .far.calendar-star { color: #ccc; }
 .calendar-stars-nodata { font-size: 0.85em; color: #aaa; font-style: italic; display: inline-block; line-height: 1em; }
-.calendar-rain-icon { font-size: 1.1em; color: #4682B4; vertical-align: middle; }
-
-.calendar-rain-icon {
-    font-size: 1.1em; /* Base size */
-    vertical-align: middle;
-    transition: color 0.2s ease-in-out; /* Smooth color transition if desired */
-}
-
-.calendar-rain-icon.drizzle-icon {
-    color: #b0c4de; /* Light Steel Blue / Grayish */
-    opacity: 0.8;
-}
-
-.calendar-rain-icon.light-rain-icon {
-    color: #4682B4; /* Steel Blue */
-}
-
-.calendar-rain-icon.moderate-rain-icon {
-    color: #2a5a8a; /* Darker Steel Blue */
-}
-
-.calendar-rain-icon.heavy-rain-icon {
-    color: #1a3a5a; /* Very Dark Blue */
-    /* Optional: slightly larger */
-    /* font-size: 1.15em; */
-}
-
-
-.calendar-rain-icon-container { line-height: 1; }
+/* Rain Icons */
+.calendar-rain-icon { font-size: 1.1em; vertical-align: middle; transition: color 0.2s ease-in-out; }
+.calendar-rain-icon.drizzle-icon { color: #b0c4de; opacity: 0.8; }
+.calendar-rain-icon.light-rain-icon { color: #4682B4; }
+.calendar-rain-icon.moderate-rain-icon { color: #2a5a8a; }
+.calendar-rain-icon.heavy-rain-icon { color: #1a3a5a; }
 .calendar-hour-box.highlighted { border-color: #007bff; background-color: #e7f3ff; border-width: 2px; padding: 5px 7px 7px 7px; }
 .calendar-hour-box.passed { opacity: 0.65; background-color: #eee; border-color: #ddd; cursor: default; }
 .calendar-hour-box.passed:hover { background-color: #e5e5e5; }
@@ -314,15 +426,25 @@ body.calendar-visible #site-forecast-calendar { transform: translateY(0); }
 /* --- Leaflet Controls & Overlays --- */
 /* =================================== */
 
-/* --- Leaflet Control Positioning Fix for Calendar --- */
-.leaflet-control-container .leaflet-bottom { transition: bottom 0.3s ease-in-out; z-index: 850; }
+/* --- Leaflet Control Positioning Fix for Calendar/Tracker --- */
+.leaflet-control-container .leaflet-bottom {
+    transition: bottom 0.3s ease-in-out;
+    z-index: 850; /* Below calendar/tracker panels */
+}
+/* Move controls up when calendar is visible */
 body.calendar-visible .leaflet-control-container .leaflet-bottom.leaflet-left,
 body.calendar-visible .leaflet-control-container .leaflet-bottom.leaflet-right {
     bottom: var(--calendar-height-with-margin, 185px);
 }
+/* Move controls up when tracker bottom panel is visible (if needed) */
+/* Note: Currently tracker hides most controls, so this might be redundant */
+body.tracker-active #trackerBottomPanel:not([style*="display: none"]) ~ .leaflet-container .leaflet-control-container .leaflet-bottom {
+     /* bottom: var(--tracker-bottom-panel-height, 200px); */
+     /* Decide if controls should move up for tracker panel too */
+}
 
-/* Hide Default Leaflet Attribution */
-.leaflet-control-attribution { display: none !important; }
+/* Hide Default Leaflet Attribution (if not using attributionControl: false in JS) */
+/* .leaflet-control-attribution { display: none !important; } */
 
 /* --- Star Filter --- */
 .leaflet-control-stars { background-color: rgba(255, 255, 255, 0.9); box-shadow: 0 1px 5px rgba(0,0,0,0.4); border-radius: 4px; padding: 5px 8px; display: flex; align-items: center; gap: 8px; }
@@ -343,15 +465,40 @@ body.calendar-visible .leaflet-control-container .leaflet-bottom.leaflet-right {
 .leaflet-control-marker-filter .marker-filter-item { padding: 5px 8px; cursor: pointer; opacity: 0.5; transition: opacity 0.2s ease-in-out, background-color 0.2s ease-in-out; font-size: 0.9em; border-radius: 3px; white-space: nowrap; }
 .leaflet-control-marker-filter .marker-filter-item i { margin-right: 5px; width: 1.1em; text-align: center; }
 .leaflet-control-marker-filter .marker-filter-item:hover { background-color: #f4f4f4; }
-.leaflet-control-marker-filter .marker-filter-item.active { opacity: 1.0; /* background-color: #efefef; */ } /* Optional active background */
+.leaflet-control-marker-filter .marker-filter-item.active { opacity: 1.0; }
 
 /* --- Particle Controls --- */
-.leaflet-control-particles { background-color: white; border-radius: 4px; box-shadow: 0 1px 5px rgba(0,0,0,0.65); }
+.leaflet-control-particles {
+    background-color: white;
+    border-radius: 4px;
+    box-shadow: 0 1px 5px rgba(0,0,0,0.65);
+    /* --- ADD POSITION & Z-INDEX --- */
+    position: relative; /* Ensure it creates a stacking context */
+    z-index: 10500; /* Needs to be higher than sibling controls (e.g., zoom, layers) */
+    /* --- END ADDITION --- */
+}
 .leaflet-control-particles-button { background-color: white; border-radius: 4px; width: 30px; height: 30px; line-height: 30px; text-align: center; text-decoration: none; color: black; display: block; font-size: 1.2em; cursor: pointer; }
 .leaflet-control-particles-button:hover { background-color: #f4f4f4; }
 .leaflet-control-particles-button.active { background-color: #ddd; }
-.leaflet-control-particles-panel { position: absolute; top: 32px; left: 0; background-color: rgba(255, 255, 255, 0.95); padding: 10px 15px; border-radius: 0 0 4px 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.4); width: 280px; display: none; z-index: -1; border: 1px solid #ccc; border-top: none; box-sizing: border-box; }
-.leaflet-control-particles-panel .particle-control-group { display: flex; align-items: center; margin-bottom: 8px; gap: 8px; font-size: 0.9em; }
+.leaflet-control-particles-panel {
+    position: absolute;
+    top: 32px; /* Position below the button */
+    left: 0;
+    background-color: rgba(255, 255, 255, 0.95);
+    padding: 10px 15px;
+    border-radius: 0 0 4px 4px; /* Match bottom corners */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.4);
+    width: 280px; /* Adjust width as needed */
+    display: none; /* Initially hidden by default in CSS */
+
+    /* --- INCREASED Z-INDEX --- */
+    z-index: 11000; /* Make this panel appear on top of most other elements */
+    /* --- END Z-INDEX CHANGE --- */
+
+    border: 1px solid #ccc;
+    border-top: none;
+    box-sizing: border-box;
+}.leaflet-control-particles-panel .particle-control-group { display: flex; align-items: center; margin-bottom: 8px; gap: 8px; font-size: 0.9em; }
 .leaflet-control-particles-panel label { font-weight: bold; flex-basis: 60px; flex-shrink: 0; text-align: right; margin-right: 5px; }
 .leaflet-control-particles-panel input[type="range"] { flex-grow: 1; vertical-align: middle; height: 18px; }
 .leaflet-control-particles-panel .particle-value-span { min-width: 50px; font-family: monospace; text-align: left; }
@@ -359,8 +506,11 @@ body.calendar-visible .leaflet-control-container .leaflet-bottom.leaflet-right {
 .leaflet-control-particles.disabled .leaflet-control-particles-button { opacity: 0.5; cursor: not-allowed; background-color: #eee; }
 
 /* --- Search Control --- */
-.leaflet-control-search { background-color: white; border-radius: 4px; box-shadow: 0 1px 5px rgba(0,0,0,0.65); position: relative; z-index: auto; }
-.leaflet-control-search.suggestions-visible { z-index: 1015; } /* Elevate when suggestions are open */
+.leaflet-control-search {
+    background-color: white; border-radius: 4px; box-shadow: 0 1px 5px rgba(0,0,0,0.65);
+    position: relative; z-index: auto; /* Default z-index */
+}
+.leaflet-control-search.suggestions-visible { z-index: 1015; } /* Elevate when suggestions open */
 .leaflet-control-search-input { width: 220px; height: 30px; padding: 0 10px; border: none; border-radius: 4px; font-size: 1em; box-sizing: border-box; outline: none; }
 .leaflet-control-search-suggestions { position: absolute; top: 100%; left: 0; right: 0; max-height: 250px; overflow-y: auto; background: white; border: 1px solid #ccc; border-top: none; border-radius: 0 0 4px 4px; display: none; z-index: 1; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
 .leaflet-control-search-suggestions div { padding: 8px 12px; cursor: pointer; border-bottom: 1px solid #eee; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.9em; }
@@ -371,9 +521,9 @@ body.calendar-visible .leaflet-control-container .leaflet-bottom.leaflet-right {
 
 /* --- Key Controls (RASP, MET Rain) --- */
 .leaflet-control-rasp-key, .leaflet-control-met-rain-key { background-color: rgba(255, 255, 255, 0.8); padding: 5px; border-radius: 4px; box-shadow: 0 1px 5px rgba(0,0,0,0.4); }
-.leaflet-control-rasp-key { transform: translateY(-61px); }
-.leaflet-control-met-rain-key { transform: translateY(-30px); }
-.leaflet-control-rasp-key img, .leaflet-control-met-rain-key img { display: block; max-width: 450px; max-height: 120px; height: auto; width: auto; border: 1px solid #ccc; }
+.leaflet-control-rasp-key { transform: translateY(-61px); } /* Adjust position if needed */
+.leaflet-control-met-rain-key { transform: translateY(-30px); } /* Adjust position if needed */
+.leaflet-control-rasp-key img, .leaflet-control-met-rain-key img { display: block; max-width: 450px; max-height: 120px; height: auto; width: auto;  solid #ccc; }
 
 /* --- Webcam Overlay Icon --- */
 .webcam-overlay-icon { background-color: rgba(255, 255, 255, 0.7); border-radius: 50%; box-shadow: 0 0 3px rgba(0, 0, 0, 0.5); border: 1px solid rgba(0, 0, 0, 0.3); display: flex; justify-content: center; align-items: center; text-align: center; }
@@ -381,9 +531,13 @@ body.calendar-visible .leaflet-control-container .leaflet-bottom.leaflet-right {
 
 /* --- Wind Indicator (OpenMeteo) --- */
 .wind-indicator-icon { pointer-events: none; overflow: visible; }
-.wind-indicator-arrow { width: 20px; height: 200px; margin-left: -10px; background-color: rgba(51, 136, 255, 0.8); position: absolute; top: 0; left: 50%; transform-origin: center top; transition: transform 0.3s ease-out; border-radius: 0 0 3px 3px; box-shadow: 1px 1px 3px rgba(0,0,0,0.3); display: flex; justify-content: center; align-items: center; }
-.wind-indicator-arrow::before { content: ''; position: absolute; top: -12%; left: 50%; margin-left: -10px; margin-top: 12px; width: 0; height: 0; border-left: 10px solid transparent; border-right: 10px solid transparent; border-top: 12px solid rgba(51, 136, 255, 0.8); transform-origin: center center; transform: rotate(180deg); }
-.indicator-text-wrapper { transform: rotate(-90deg); transform-origin: center center; white-space: nowrap; display: flex; gap: 5px; align-items: center; color: white; font-size: 20px; font-weight: bold; text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.6); line-height: 1; padding: 1px 3px; position: relative; }
+.wind-indicator-arrow { width: 20px; height: 200px; margin-left: -10px; background-color: rgba(51, 136, 255, 0.8); position: absolute; top: 0; left: 50%; transform-origin: center top; transition: transform 0.3s ease-out; border-radius: 0 0 3px 3px; box-shadow: 1px 1px 3px rgba(0,0,0,0.3); display: flex; justify-content: center; align-items: center; /* overflow: hidden; removed */ }
+.wind-indicator-arrow::before { content: ''; position: absolute; top: -12%; left: 50%; margin-left: -10px; margin-top: 12px; width: 0; height: 0; border-left: 10px solid transparent; border-right: 10px solid transparent; border-top: 12px solid rgba(51, 136, 255, 0.8); transform-origin: center center; transform: rotate(180deg); /* z-index: 1; added if needed */ }
+.indicator-text-wrapper { transform: rotate(-90deg); transform-origin: center center; white-space: nowrap; display: flex; gap: 5px; align-items: center; color: white; font-size: 20px; font-weight: bold; text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.6); line-height: 1; padding: 1px 3px; position: relative; /* Needed for z-index if text overlaps */ }
+
+/* --- Load IGC Button --- */
+.leaflet-control-load-igc { width: 30px; height: 30px; }
+.leaflet-control-load-igc a, .leaflet-control-load-igc i { font-size: 1.2em; line-height: 26px; text-align: center; display: block; width: 100%; color: #333; }
 
 /* --- Other Overlays & Markers --- */
 .leaflet-particles-layer { z-index: 450; pointer-events: none; }
@@ -420,26 +574,110 @@ body.calendar-visible .leaflet-control-container .leaflet-bottom.leaflet-right {
 .tracker-ui { display: none !important; }
 body.tracker-active .tracker-ui { display: block !important; } /* Or flex/grid as needed */
 
-/* Hide specific elements in tracker mode */
-body.tracker-active #wind-speed-filter-controls, body.tracker-active #airspace-controls, body.tracker-active #rasp-corner-controls, body.tracker-active .leaflet-control-layers, body.tracker-active .leaflet-control-stars, body.tracker-active .leaflet-control-particles, body.tracker-active .leaflet-control-search, body.tracker-active .leaflet-control-obstacle-toggle, body.tracker-active .leaflet-control-rasp-key, body.tracker-active .leaflet-control-met-rain-key, body.tracker-active .leaflet-control-load-igc, body.tracker-active #site-forecast-calendar { display: none !important; }
-body.tracker-active .leaflet-marker-pane { opacity: 0.1; pointer-events: none; transition: opacity 0.3s ease-in-out; }
-body:not(.tracker-active) .leaflet-marker-pane { opacity: 1; pointer-events: auto; }
+/* Hide specific non-tracker elements in tracker mode */
+body.tracker-active #global-time-controls, /* Added */
+body.tracker-active #wind-speed-filter-controls,
+body.tracker-active #airspace-controls,
+body.tracker-active #rasp-corner-controls,
+body.tracker-active #ukmo-display-panel, /* Added */
+body.tracker-active .leaflet-control-layers,
+body.tracker-active .leaflet-control-stars,
+body.tracker-active .leaflet-control-particles,
+body.tracker-active .leaflet-control-search,
+body.tracker-active .leaflet-control-obstacle-toggle, /* Assumes this exists */
+body.tracker-active .leaflet-control-marker-filter, /* Added */
+body.tracker-active .leaflet-control-rasp-key,
+body.tracker-active .leaflet-control-met-rain-key,
+body.tracker-active .leaflet-control-load-igc,
+body.tracker-active #site-forecast-calendar {
+    display: none !important;
+}
 
-/* Tracker Panel Layout */
-#trackerBottomPanel { position: fixed; bottom: 0; left: 0; width: 100%; z-index: 900; background-color: #ffffff; border-top: 2px solid #aaa; box-shadow: 0 -2px 5px rgba(0,0,0,0.1); transform: translateY(100%); transition: transform 0.3s ease-in-out; }
-body.tracker-active #trackerBottomPanel { display: block !important; transform: translateY(0); }
+/* Dim markers in tracker mode */
+body.tracker-active .leaflet-marker-pane {
+    opacity: 0.1; pointer-events: none; transition: opacity 0.3s ease-in-out;
+}
+body:not(.tracker-active) .leaflet-marker-pane {
+    opacity: 1; pointer-events: auto;
+}
 
-.chart-controls-container { display: flex; flex-wrap: nowrap; align-items: stretch; width: 100%; }
-.chart-controls-container > #trackerHeaderCard, .chart-controls-container > .barogram-container { width: 50%; box-sizing: border-box; }
-#trackerHeaderCard .card-body { padding: 0.75rem; height: 100%; display: flex; flex-direction: column; }
-#trackerHeaderCard .key-info-grid { flex-grow: 1; }
-.barogram-container { width: 50%; box-sizing: border-box; padding: 10px 15px; position: relative; min-height: 150px; display: flex; flex-direction: column; justify-content: center; }
-#trackerBarogramCanvas { display: block; max-width: 100%; height: auto; padding:10px; }
+/* --- Tracker Panel Layout --- */
+#trackerBottomPanel {
+    position: fixed; bottom: 0; left: 0; width: 100%; z-index: 900;
+    background-color: var(--card-bg); border-top: 2px solid #aaa;
+    box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
+    transform: translateY(100%); transition: transform 0.3s ease-in-out;
+}
+body.tracker-active #trackerBottomPanel {
+    display: block !important; /* Override base .tracker-ui */
+    transform: translateY(0);
+}
 
-.controls-footer { background-color: var(--light-bg); padding: 10px 15px; border-top: 1px solid var(--border-color); }
-.info-display { font-size: 1.1em; color: var(--muted-text-color); text-align: center; margin-bottom: 8px; min-height: 1.2em; font-variant-numeric: tabular-nums; }
+/* Container for Header Card + Barogram */
+.chart-controls-container {
+    display: flex; flex-wrap: nowrap; align-items: stretch; width: 100%;
+}
+/* Header Card (Left 50%) */
+#trackerHeaderCard {
+    width: 50%; box-sizing: border-box;
+    /* Styles from the "Modern Look" section integrated here */
+    background-color: var(--card-bg); /* Uses variable */
+    border: none; /* Assuming border is handled by #trackerBottomPanel */
+    border-right: 1px solid var(--card-border-color); /* Separator */
+    margin-bottom: 0; /* Override default card margin */
+    overflow: hidden;
+}
+#trackerHeaderCard .card-body {
+     padding: 0.75rem; height: 100%; display: flex; flex-direction: column;
+}
+#trackerHeaderCard .controls-area { display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem; flex-wrap: wrap; }
+#trackerHeaderCard .loading-status { font-style: italic; color: var(--muted-text-color); margin-left: auto; white-space: nowrap; }
+#trackerHeaderCard .key-info-grid { padding-top: 0.5rem; margin-left: -8px; margin-right: -8px; flex-grow: 1; /* Takes space */ }
+#trackerHeaderCard .placeholder-key-info { width: 100%; text-align: center; padding: 1rem 0; font-style: italic; }
+#trackerHeaderCard .key-info-item { text-align: center; padding: 5px 8px 10px 8px; margin-bottom: 0.5rem; }
+#trackerHeaderCard .key-info-item h5 { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.15rem; display: flex; align-items: center; justify-content: center; gap: 6px; font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-height: 1.5em; }
+#trackerHeaderCard .key-info-item h5 i { color: var(--primary-color); font-size: 1em; opacity: 0.9; width: 1.2em; text-align: center; flex-shrink: 0; }
+#trackerHeaderCard .key-info-item span { font-size: 0.8em; color: var(--muted-text-color); display: block; white-space: nowrap; }
+#trackerHeaderCard .unit-selector { display: flex; align-items: center; gap: 0.3rem; background-color: var(--light-bg); padding: 3px 6px; border-radius: var(--border-radius-sm); border: 1px solid var(--border-color); }
+#trackerHeaderCard .unit-selector label { margin-bottom: 0; color: var(--muted-text-color); font-size: 0.9em; }
+#trackerHeaderCard .unit-selector select.unit-select { font-size: var(--font-size-sm); border-radius: var(--border-radius-sm); border: none; background-color: transparent; padding: 0; padding-right: 1rem; background-position: right 0 center; background-size: 12px 9px; appearance: none; cursor: pointer; outline: none; }
+#trackerHeaderCard .unit-selector select.unit-select:focus { box-shadow: none; }
+
+/* Exit Button */
+#exitTrackerBtn {
+  color: #a94442; border-color: #a94442; background-color: transparent;
+  transition: color .15s ease-in-out, background-color .15s ease-in-out, border-color .15s ease-in-out, box-shadow .15s ease-in-out;
+  /* Inherits .btn .btn-sm styles */
+}
+#exitTrackerBtn:hover, #exitTrackerBtn:focus { color: #fff; background-color: #a94442; border-color: #a94442; box-shadow: 0 0 0 0.2rem rgba(169, 68, 66, 0.5); }
+#exitTrackerBtn i { color: inherit; }
+
+/* Barogram Container (Right 50%) */
+.barogram-container {
+    width: 50%; box-sizing: border-box; padding: 10px 15px;
+    position: relative; min-height: 150px; /* Ensures minimum size */
+    display: flex; flex-direction: column; justify-content: center; /* Centers canvas */
+}
+#trackerBarogramCanvas { /* Correct ID */
+    display: block; max-width: 100%; height: auto; /* Responsive */
+    padding:10px; /* Spacing around canvas */
+}
+
+/* Footer below Header/Barogram */
+.controls-footer {
+    background-color: var(--light-bg); padding: 10px 15px; border-top: 1px solid var(--border-color);
+    /* border-radius only needed if bottom panel isn't a separate card */
+}
+.info-display {
+    font-size: 1.1em; color: var(--muted-text-color); text-align: center;
+    margin-bottom: 8px; min-height: 1.2em; font-variant-numeric: tabular-nums;
+}
 .slider-container { margin-bottom: 10px; padding: 0; }
-#trackerTimeSlider { width: 100%; cursor: pointer; height: 8px; appearance: none; background: var(--dark-bg); border-radius: 5px; outline: none; display: block; margin: 0; }
+#trackerTimeSlider { /* Correct ID */
+    width: 100%; cursor: pointer; height: 8px; appearance: none;
+    background: var(--dark-bg); border-radius: 5px; outline: none;
+    display: block; margin: 0;
+}
 #trackerTimeSlider::-webkit-slider-thumb { appearance: none; width: 18px; height: 18px; background: var(--primary-color); border-radius: 50%; cursor: pointer; margin-top: -5px; box-shadow: 0 0 2px rgba(0,0,0,0.3); }
 #trackerTimeSlider::-moz-range-thumb { width: 18px; height: 18px; background: var(--primary-color); border-radius: 50%; cursor: pointer; border: none; box-shadow: 0 0 2px rgba(0,0,0,0.3); }
 .playback-controls { display: flex; align-items: center; justify-content: center; gap: 0.75rem; }
@@ -450,60 +688,188 @@ body.tracker-active #trackerBottomPanel { display: block !important; transform: 
 .auto-pan-control input[type="checkbox"]:checked + label { color: var(--primary-color); background-color: #e2e6ea; }
 .auto-pan-control label i { vertical-align: middle; }
 
-/* Live Stats Bar */
-#trackerLiveStatsBar { margin-bottom: 0px; position: fixed; bottom: 0; left: 0; width: 100%; z-index: 901; background-color: rgba(255, 255, 255, 0.5); border-top: 1px solid var(--card-border-color); display: flex !important; justify-content: space-around; align-items: stretch; padding: 0.75rem 0.5rem; flex-wrap: wrap; gap: 0.5rem; transform: translateY(100%); transition: transform 0.3s ease-in-out, bottom 0.3s ease-in-out; }
-body.tracker-active #trackerLiveStatsBar { bottom: var(--tracker-bottom-panel-height, 200px); transform: translateY(0); }
+/* --- Live Stats Bar (Above Bottom Panel) --- */
+#trackerLiveStatsBar {
+    margin-bottom: 0px; position: fixed; bottom: 0; left: 0; width: 100%; z-index: 901; /* Above bottom panel */
+    background-color: rgba(255, 255, 255, 0.7); /* Semi-transparent white */
+    border-top: 1px solid var(--card-border-color);
+    display: flex !important; /* Override base .tracker-ui */
+    justify-content: space-around; align-items: stretch;
+    padding: 0.75rem 0.5rem; flex-wrap: wrap; gap: 0.5rem;
+    transform: translateY(100%); /* Start hidden */
+    transition: transform 0.3s ease-in-out, bottom 0.3s ease-in-out; /* Combined transition */
+}
+body.tracker-active #trackerLiveStatsBar {
+     bottom: var(--tracker-bottom-panel-height, 200px); /* Position above bottom panel */
+     transform: translateY(0); /* Slide up */
+}
 .live-stat-item { opacity: 1 !important; display: flex; flex-direction: column; align-items: center; text-align: center; flex: 1; min-width: 80px; padding: 0 5px; }
-.live-stat-icon { font-size: 1em; color: var(--muted-text-color); margin-bottom: 2px; line-height: 1; }
-.live-stat-value { opacity: 1 !important; font-size: 1.3em; font-weight: bold; color: var(--live-stats-color); line-height: 1.1; font-variant-numeric: tabular-nums; white-space: nowrap; min-width: 60px; display: inline-block; text-align: center; }
-.live-stat-label { font-size: 0.75em; color: var(--muted-text-color); text-transform: uppercase; letter-spacing: 0.5px; line-height: 1; margin-top: 2px; }
+.live-stat-icon { font-size: 1em; color: #333; /* Darker icon */ margin-bottom: 2px; line-height: 1; }
+.live-stat-value { opacity: 1 !important; font-size: 1.3em; font-weight: bold; color: #333; /* Darker text */ line-height: 1.1; font-variant-numeric: tabular-nums; white-space: nowrap; min-width: 60px; display: inline-block; text-align: center; }
+.live-stat-label { font-size: 0.75em; color: #555; /* Darker label */ text-transform: uppercase; letter-spacing: 0.5px; line-height: 1; margin-top: 2px; }
 
-/* Tracker Stats Panel */
-#trackerStatsPanel { position: absolute; top: 20px; right: 10px; width: 425px; z-index: 1030; background-color: rgba(255, 255, 255, 0.95); border-radius: var(--border-radius); box-shadow: var(--card-shadow); border: 1px solid var(--card-border-color); overflow: hidden; transition: max-height 0.4s ease-in-out; max-height: 60px; } /* Start collapsed */
-#trackerStatsPanel.expanded { max-height: 85vh; }
-.stats-panel-toggle { cursor: pointer; user-select: none; display: flex; justify-content: space-between; align-items: center; margin-bottom: 0; padding: 1rem 1.25rem; } /* Add padding here */
+/* --- Tracker Stats Panel (Top Right, Collapsible) --- */
+#trackerStatsPanel {
+    position: absolute; top: 20px; right: 10px; width: 425px; z-index: 1030; /* High z-index */
+    background-color: rgba(255, 255, 255, 0.95); border-radius: var(--border-radius);
+    box-shadow: var(--card-shadow); border: 1px solid var(--card-border-color);
+    overflow: hidden; transition: max-height 0.4s ease-in-out;
+    max-height: 60px; /* Start collapsed (adjust to fit title) */
+}
+#trackerStatsPanel.expanded { max-height: 85vh; } /* Expanded height */
+/* Clickable Title Area */
+.stats-panel-toggle {
+    cursor: pointer; user-select: none; display: flex; justify-content: space-between;
+    align-items: center; margin-bottom: 0; padding: 1rem 1.25rem; /* Use padding for spacing */
+    /* Integrate card-title styles */
+    font-size: 1.1rem; font-weight: 600;
+}
 .stats-panel-chevron { transition: transform 0.4s ease-in-out; font-size: 0.9em; color: var(--muted-text-color); margin-left: 10px; }
 #trackerStatsPanel.expanded .stats-panel-chevron { transform: rotate(180deg); }
-.stats-panel-content { padding: 0 1.25rem 1rem 1.25rem; max-height: calc(85vh - 80px); overflow-y: auto; } /* Padding matches card-body */
-.stats-card .card-body { padding: 0; } /* Remove padding from card-body as toggle handles it */
+/* Content Area */
+.stats-panel-content {
+    padding: 0 1.25rem 1rem 1.25rem; /* Match toggle padding, add bottom padding */
+    max-height: calc(85vh - 80px); /* Limit content height, allow scroll */
+    overflow-y: auto;
+}
+/* Remove card-body padding if using toggle/content padding */
+.stats-card .card-body { padding: 0; }
 
-/* Tracker Map Overlay */
-#trackerMapOverlayInfo { position: fixed; top: 15%; left: 50%; transform: translateX(-50%); width: auto; max-width: 90%; z-index: 1001; background-color: rgba(255, 255, 255, 0.85); color: #000000; padding: 5px 15px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3); display: none; /* Hidden by default */ flex-wrap: nowrap; gap: 15px; justify-content: center; align-items: center; border: 1px solid rgba(68, 68, 68, 0.6); transition: opacity 0.3s ease-in-out; }
-body.tracker-active #trackerMapOverlayInfo { display: flex; }
-#trackerMapOverlayInfo > div.key-info-item { text-align: center; flex: 0 0 auto; }
+/* Stats Content Styling (Inside .stats-panel-content) */
+.stats-section { margin-bottom: 1rem; }
+.stats-section:last-child { margin-bottom: 0; }
+.stats-section-title { font-size: 1rem; font-weight: 600; margin-bottom: 0.6rem; color: var(--text-color); display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--light-bg); padding-bottom: 0.4rem; }
+.stats-section-title i { color: var(--primary-color); opacity: 0.9; font-size: 0.9em; }
+.stats-section-content { padding-left: 5px; }
+hr.stats-hr { margin: 1rem 0; border-color: var(--light-bg); opacity: 1; }
+.stat-item { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #f0f0f0; font-size: 0.88em; line-height: 1.4; }
+.stat-item:last-child { border-bottom: none; }
+.stat-item span { color: var(--muted-text-color); padding-right: 10px; display: flex; align-items: center; gap: 5px; }
+.stat-item strong { font-weight: 600; text-align: right; font-variant-numeric: tabular-nums; }
+.stat-item strong .fs-11 { font-size: 0.8em; font-weight: 400; margin-left: 1px; opacity: 0.8; }
+.progress-bar-container { height: 6px; background-color: var(--med-bg); border-radius: 3px; overflow: hidden; margin: 3px 0 10px 0; }
+.progress-bar { height: 100%; transition: width 0.5s ease-in-out; border-radius: 3px; }
+.progress-bar.flight { background-color: var(--primary-color); }
+.progress-bar.ground { background-color: var(--secondary-color); }
+.progress-stat { border-bottom: none; padding: 2px 0; }
+.stats-grid { margin-left: -8px; margin-right: -8px; } /* Uses .row/.col-* */
+.key-stat-item { text-align: center; padding: 10px 8px 15px 8px; margin-bottom: 0.5rem; }
+.key-stat-item h5 { font-size: 1.15rem; font-weight: 600; margin-bottom: 0.25rem; display: flex; align-items: center; justify-content: center; gap: 6px; font-variant-numeric: tabular-nums; }
+.key-stat-item h5 i { color: var(--secondary-color); font-size: 1.1em; opacity: 0.8; width: 1.2em; text-align: center; }
+.key-stat-item h5 i.text-success { color: #198754 !important; }
+.key-stat-item h5 i.text-danger { color: #dc3545 !important; }
+.key-stat-item h5 i.text-warning { color: #ffc107 !important; }
+.key-stat-item span { font-size: 0.8em; color: var(--muted-text-color); display: block; }
+.stats-table { width: 100%; border-collapse: collapse; font-size: 0.88em; }
+.stats-table td { padding: 5px 8px; border-bottom: 1px solid #f0f0f0; vertical-align: middle; line-height: 1.4; }
+.stats-table tr:last-child td { border-bottom: none; }
+.stats-table td:first-child { color: var(--muted-text-color); width: 55%; text-align: left; padding-right: 15px; }
+.stats-table td:last-child { font-weight: 600; text-align: right; font-variant-numeric: tabular-nums; }
+.text-success { color: #198754 !important; }
+.text-danger { color: #dc3545 !important; }
+.text-warning { color: #ffc107 !important; }
+.text-info { color: #0dcaf0 !important; }
+.text-muted { color: var(--muted-text-color) !important; }
+
+
+/* --- Tracker Map Overlay Info (Centered Top/Middle) --- */
+#trackerMapOverlayInfo {
+    position: fixed; top: 15%; left: 50%; transform: translateX(-50%);
+    width: auto; max-width: 90%; z-index: 1001; /* Above map, below modals/panels */
+    background-color: rgba(255, 255, 255, 0.85); color: #000000;
+    padding: 5px 15px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+    display: none; /* Hidden by default */
+    flex-wrap: nowrap; gap: 15px; justify-content: center; align-items: center;
+    border: 1px solid rgba(68, 68, 68, 0.6); transition: opacity 0.3s ease-in-out;
+}
+body.tracker-active #trackerMapOverlayInfo { display: flex; } /* Show in tracker mode */
+#trackerMapOverlayInfo > div.key-info-item { text-align: center; flex: 0 0 auto; } /* Use key-info-item class */
 #trackerMapOverlayInfo h5 { margin: 0 0 2px 0; font-size: 0.9em; font-weight: 500; display: flex; align-items: center; gap: 5px; white-space: nowrap; }
 #trackerMapOverlayInfo span { font-size: 0.75em; opacity: 0.85; display: block; }
 
-/* Tracker Misc */
+/* --- Tracker Misc --- */
 .glider-marker-icon img { transition: transform 0.1s linear; transform-origin: center bottom; display: block; max-width: 100%; margin: 0 !important; padding: 0 !important; }
-#exitTrackerBtn { color: #a94442; border-color: #a94442; background-color: transparent; transition: color .15s ease-in-out, background-color .15s ease-in-out, border-color .15s ease-in-out, box-shadow .15s ease-in-out; }
-#exitTrackerBtn:hover, #exitTrackerBtn:focus { color: #fff; background-color: #a94442; border-color: #a94442; box-shadow: 0 0 0 0.2rem rgba(169, 68, 66, 0.5); }
-#exitTrackerBtn i { color: inherit; }
+
 
 /* ============================ */
-/* --- Mobile Adjustments --- */
+/* --- General UI Elements --- */
 /* ============================ */
+
+/* --- Card Styling --- */
+.card {
+	margin: 10px;
+    background-color: var(--card-bg);
+    border: 1px solid var(--card-border-color);
+    border-radius: var(--border-radius);
+    box-shadow: var(--card-shadow);
+    margin-bottom: 1rem; /* Spacing between cards */
+    overflow: hidden; /* Important for map/chart */
+}
+.card-body {
+    padding: 1rem 1.25rem;
+}
+.card-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+}
+
+/* --- Button & Form Styling --- */
+.btn { display: inline-block; font-weight: 400; line-height: 1.5; color: var(--text-color); text-align: center; text-decoration: none; vertical-align: middle; cursor: pointer; user-select: none; background-color: transparent; border: 1px solid transparent; padding: var(--btn-padding-y-sm) var(--btn-padding-x-sm); font-size: var(--font-size-sm); border-radius: var(--border-radius-sm); transition: color .15s ease-in-out,background-color .15s ease-in-out,border-color .15s ease-in-out,box-shadow .15s ease-in-out; }
+.btn:hover { text-decoration: none; }
+.btn:disabled { pointer-events: none; opacity: 0.65; }
+.btn-primary { color: var(--white); background-color: var(--primary-color); border-color: var(--primary-color); }
+.btn-primary:hover { background-color: #0b5ed7; border-color: #0a58ca; }
+.btn-secondary { color: var(--white); background-color: var(--secondary-color); border-color: var(--secondary-color); }
+.btn-secondary:hover { background-color: #5c636a; border-color: #565e64; }
+.btn-light { color: var(--text-color); background-color: var(--light-gray); border-color: var(--light-gray); }
+.btn-light:hover { background-color: #f9fafb; border-color: #f9fafb; }
+.btn-outline-secondary { color: var(--secondary-color); border-color: var(--secondary-color); }
+.btn-outline-secondary:hover { color: var(--white); background-color: var(--secondary-color); border-color: var(--secondary-color); }
+.btn i { margin-right: 4px; } /* Icon spacing */
+.form-select-sm { padding: var(--btn-padding-y-sm) var(--btn-padding-x-sm); padding-right: 1.5rem; font-size: var(--font-size-sm); border-radius: var(--border-radius-sm); border: 1px solid var(--border-color); background-color: var(--white); background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e"); background-repeat: no-repeat; background-position: right 0.5rem center; background-size: 16px 12px; appearance: none; cursor: pointer; outline: none; }
+.form-label-sm { font-size: var(--font-size-sm); margin-bottom: 0; color: var(--muted-text-color); }
+select:disabled, button:disabled { cursor: not-allowed; opacity: 0.5; }
+
+
+/* ============================ */
+/* --- Responsive Adjustments --- */
+/* ============================ */
+
+/* --- Desktop Layout (LG Breakpoint and Up) --- */
+@media (min-width: 992px) {
+    /* This layout was specific to tracker, moved inside tracker section */
+    /* .main-content-area { display: flex; gap: 1rem; align-items: flex-start; } */
+    /* .map-container { width: 65%; height: 75vh; margin-bottom: 0; } */
+    /* .chart-controls-container { width: 100%; height: 35vh; margin-bottom: 0; } */
+    /* .barogram-container { height: calc(100%); min-height: 150px; } */
+}
+
+/* --- Mobile Adjustments (MD Breakpoint and Down) --- */
 @media (max-width: 768px) {
 
     /* Popups */
     .leaflet-popup-content-wrapper { max-width: 90vw; }
-    .leaflet-popup-content { max-height: 30vh; overflow-y: auto; margin: 10px 15px 10px 10px; margin-right: 5px; } /* Adjust margins */
+    .leaflet-popup-content { max-height: 40vh; overflow-y: auto; margin: 10px 15px 10px 10px; } /* Adjust margins/height */
+
+    /* UKMO Panel */
+    #ukmo-display-panel { font-size: 0.8em; padding: 5px 10px; gap: 5px 10px; }
+    .ukmo-item i.fas { font-size: 1em; }
 
     /* Calendar */
-    #site-forecast-calendar { max-height: 145px; padding: 3px 5px 5px 5px; }
+    #site-forecast-calendar { max-height: 160px; padding: 3px 5px 5px 5px; } /* Slightly taller allowed */
     .calendar-header { padding-bottom: 3px; margin-bottom: 3px; gap: 5px; flex-wrap: wrap; }
-    .header-left-group { gap: 5px; flex-shrink: 10; }
+    .header-left-group { gap: 5px; flex-shrink: 10; } /* Allow shrinking */
     .header-left-group #calendar-close-button { font-size: 1.0em; }
-    .header-left-group #calendar-site-name { font-size: 0.9em; }
-    #calendar-date { font-size: 0.8em; margin-left: 0; }
-    .header-extra-info { font-size: 0.75em; gap: 2px 5px; padding-top: 0; width: 100%; order: 4; border-top: 1px solid #eee; margin-top: 3px; }
+    .header-left-group #calendar-site-name { font-size: 1.2em; }
+    .header-extra-info { font-size: 0.75em; gap: 2px 5px; padding-top: 2px; width: 100%; order: 4; /* Place below */ border-top: 1px solid #eee; margin-top: 3px; justify-content: flex-start; /* Align left */}
     .header-info-item.map-links img { height: 16px; }
     .header-info-item.webcam-link { font-size: 1.1em; }
     .header-info-item.webcam-link i { font-size: 1.1em; }
-    #calendar-content { gap: 3px; padding-bottom: 3px; justify-content: center; } /* Center boxes */
+    #calendar-content { gap: 3px; padding-bottom: 3px; justify-content: flex-start; } /* Start boxes from left */
     #calendar-content::-webkit-scrollbar { height: 5px; }
     #calendar-content::-webkit-scrollbar-thumb { border-width: 1px; }
-    .calendar-hour-box { min-width: 70px; padding: 3px 4px 4px 4px; font-size: 0.7em; }
+    .calendar-hour-box { min-width: 75px; padding: 3px 4px 4px 4px; font-size: 0.7em; }
     .calendar-hour-box.highlighted { padding: 2px 3px 3px 3px; }
     .calendar-hour-box span { margin-bottom: 0px; line-height: 1.2; }
     .calendar-hour-box .time { font-size: 1.15em; }
@@ -517,116 +883,30 @@ body.tracker-active #trackerMapOverlayInfo { display: flex; }
     .calendar-hour-box.passed { opacity: 0.6; }
 
     /* Tracker Adjustments */
-    .chart-controls-container { flex-direction: column; } /* Stack vertically */
+    .chart-controls-container { flex-direction: column; } /* Stack header/barogram vertically */
     .chart-controls-container > #trackerHeaderCard,
-    .chart-controls-container > .barogram-container { width: 100%; } /* Full width */
-    .barogram-container { min-height: 150px; } /* Ensure minimum height */
-    #trackerLiveStatsBar { flex-wrap: wrap; justify-content: space-between; } /* Allow wrapping */
-    .live-stat-item { min-width: 65px; flex-basis: 45%; } /* Approx 2 per row */
+    .chart-controls-container > .barogram-container { width: 100%; border-right: none; } /* Full width, remove separator */
+    #trackerHeaderCard { border-bottom: 1px solid var(--card-border-color); } /* Add bottom border */
+    .barogram-container { min-height: 150px; padding: 5px 10px; } /* Ensure minimum height, adjust padding */
+    #trackerLiveStatsBar { flex-wrap: wrap; justify-content: space-between; padding: 0.5rem; } /* Allow wrapping */
+    .live-stat-item { min-width: 65px; flex-basis: 30%; } /* Approx 3 per row */
     #trackerMapOverlayInfo { top: auto; bottom: calc(var(--tracker-bottom-panel-height, 200px) + 10px); left: 50%; transform: translateX(-50%); width: 95%; } /* Position above bottom panel */
-    #trackerStatsPanel { width: 95%; right: 2.5%; } /* Make stats panel wider */
-
+    #trackerStatsPanel { width: 95%; right: 2.5%; top: 10px; } /* Make stats panel wider, adjust top */
+    #trackerStatsPanel.expanded { max-height: 60vh; } /* Slightly less max height */
 }
-
-
-
-
-
-
-
-
-/* =================================== */
-/* --- UKMO Display Panel --- */
-/* =================================== */
-#ukmo-display-panel {
-    background-color: #e8f4f8; /* Light blue background */
-    border-bottom: 1px solid #b0d0e0;
-    padding: 8px 15px;
-    font-size: 0.85em;
-    text-align: center;
-    display: flex; /* Use flexbox for layout */
-    flex-wrap: wrap; /* Allow items to wrap */
-    justify-content: center; /* Center items horizontally */
-    align-items: center; /* Center items vertically */
-    gap: 10px 20px; /* Spacing between items (row gap, column gap) */
-    flex-shrink: 0; /* Prevent panel shrinking */
-    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
-    transition: background-color 0.3s ease;
-    min-height: 30px; /* Ensure it has some height even when empty */
-    box-sizing: border-box;
-}
-
-#ukmo-display-panel.loading {
-    background-color: #f0f0f0;
-    color: #777;
-    font-style: italic;
-}
-
-#ukmo-display-panel.error {
-    background-color: #ffe0e0;
-    color: #a00;
-    font-weight: bold;
-}
-
-/* Placeholder message style */
-.ukmo-placeholder {
-    color: #668;
-    font-style: italic;
-    width: 100%; /* Take full width */
-}
-
-/* Individual data item in the panel */
-.ukmo-item {
-    display: inline-flex; /* Align icon/label/value */
-    align-items: center;
-    gap: 5px;
-    padding: 2px 5px;
-    background-color: rgba(255, 255, 255, 0.4);
-    border-radius: 3px;
-}
-
-.ukmo-item i.fas { /* Style for Font Awesome icons */
-    color: #336699;
-    font-size: 1.1em;
-    width: 1.1em; /* Ensure consistent width */
-    text-align: center;
-}
-
-.ukmo-label {
-    /* Optional: if you want distinct labels */
-     /* font-weight: bold; */
-     /* margin-right: 3px; */
-}
-
-.ukmo-value {
-    font-weight: bold;
-    font-family: monospace; /* Good for numeric data */
-    white-space: nowrap;
-}
-
-/* Hide panel if config flag is false (handled by JS) */
-/* #ukmo-display-panel.hidden-by-config { display: none !important; } */
-
-
-/* --- Responsive adjustments --- */
-@media (max-width: 768px) {
-    #ukmo-display-panel {
-        font-size: 0.8em;
-        padding: 5px 10px;
-        gap: 5px 10px;
-    }
-    .ukmo-item i.fas {
-        font-size: 1em;
-    }
-}
-
-
-
-
-
-
-
-
-
-
 /* --- END OF FILE style.css --- */
+
+#map {
+    /* ... other map styles ... */
+    background-color: transparent !important; /* Make it transparent */
+}
+
+/* If you had something like 'img { border: 1px solid black; }' */
+
+/* Add this to specifically remove border from map tiles */
+.leaflet-tile-container img.leaflet-tile {
+    border: none !important;
+    outline: none !important;
+    padding: 0 !important; /* Also ensure no padding */
+    margin: 0 !important;  /* And no margin */
+}
