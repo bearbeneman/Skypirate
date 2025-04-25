@@ -467,6 +467,8 @@ body.tracker-active #trackerBottomPanel:not([style*="display: none"]) ~ .leaflet
 .leaflet-control-marker-filter .marker-filter-item:hover { background-color: #f4f4f4; }
 .leaflet-control-marker-filter .marker-filter-item.active { opacity: 1.0; }
 
+
+
 /* --- Particle Controls --- */
 .leaflet-control-particles {
     background-color: white;
@@ -546,6 +548,14 @@ body.tracker-active #trackerBottomPanel:not([style*="display: none"]) ~ .leaflet
 .leaflet-image-layer img.precip-blend-screen { mix-blend-mode: screen; }
 .awesome-marker-custom-svg { width: 20px; height: 20px; margin-top: -2px; margin-left: 3px; display: inline-block; vertical-align: middle; }
 .leaflet-marker-icon { background: none; border: none; padding: 0; box-shadow: none; } /* Base marker icon reset */
+
+.marker-hidden-by-compass {
+    opacity: 0 !important; /* Make it invisible */
+    pointer-events: none !important; /* Prevent interaction */
+    /* Optional: Add a very quick transition if desired */
+    /* transition: opacity 0.1s ease-in-out; */
+}
+
 
 /* --- Loading Indicators --- */
 #loading-indicator, #obstacle-loading-indicator { position: fixed; left: 50%; transform: translate(-50%, -50%); background-color: rgba(255, 255, 255, 0.95); padding: 20px 30px; border-radius: 8px; display: none; border: 1px solid #ddd; box-shadow: 0 4px 15px rgba(0,0,0,0.15); text-align: center; z-index: 10000; }

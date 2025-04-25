@@ -128,6 +128,16 @@ export function initializeMarkers(map, layers, siteDataStore, updateCallbacks) {
                 markerInstance.closeTooltip();
             }
             // **** END ADDED BLOCK ****
+			
+			 // **** ADD THIS: Hide the marker's element ****
+            const markerElement = markerInstance.getElement();
+            if (markerElement) {
+                markerElement.classList.add('marker-hidden-by-compass');
+                // console.log(`Hiding marker element for ${siteId}`); // Debug
+            } else {
+                console.warn(`Could not get marker element for ${siteId} on popupopen`);
+            }
+            // **** END ADDED BLOCK ****
                 state.setOpenPopupSiteId(siteId); // Update state
 
                 if (_updateCallbacks?.showCalendar) _updateCallbacks.showCalendar(siteId);
@@ -147,6 +157,15 @@ export function initializeMarkers(map, layers, siteDataStore, updateCallbacks) {
                  const siteId = e.target.siteId;
                  const markerInstance = e.target;
                  console.log(`Popup closed for site ${siteId}`);
+				  // **** ADD THIS: Show the marker's element again ****
+            const markerElement = markerInstance.getElement();
+            if (markerElement) {
+                markerElement.classList.remove('marker-hidden-by-compass');
+                 // console.log(`Showing marker element for ${siteId}`); // Debug
+            } else {
+                 console.warn(`Could not get marker element for ${siteId} on popupclose`);
+            }
+             // **** END ADDED BLOCK ****
 
 
                  windIndicator.removeWindIndicator(markerInstance);
