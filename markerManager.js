@@ -120,6 +120,14 @@ export function initializeMarkers(map, layers, siteDataStore, updateCallbacks) {
                 const siteEntryLocal = dataService.getSiteData(siteId);
 
                 console.log(`Popup opened for site ${siteId}`);
+				// **** ADD THIS BLOCK ****
+            // Explicitly close the tooltip if it's open when the popup opens.
+            // This prevents it from sticking around, especially on mobile taps.
+            if (markerInstance.isTooltipOpen()) {
+                // console.log(`Tooltip was open for ${siteId}, closing it now.`); // Optional debug log
+                markerInstance.closeTooltip();
+            }
+            // **** END ADDED BLOCK ****
                 state.setOpenPopupSiteId(siteId); // Update state
 
                 if (_updateCallbacks?.showCalendar) _updateCallbacks.showCalendar(siteId);
