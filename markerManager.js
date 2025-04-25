@@ -99,7 +99,7 @@ export function initializeMarkers(map, layers, siteDataStore, updateCallbacks) {
             const initialIconInstance = getMarkerIcon(initialMarkerColor, initialIconAwesome, false);
             const marker = L.marker([site.lat, site.lng], { icon: initialIconInstance });
             marker.siteId = siteId; // Store siteId on marker
-            marker.bindTooltip(`${site.name || 'N/A'} (${initialStatusTextForTooltip})`);
+            marker.bindTooltip(`${site.name || 'N/A'}`);
 
             // --- Bind Popup ---
             marker.bindPopup(() => generatePopupHtml(siteId, siteDataStore), {
@@ -218,7 +218,7 @@ export function updateMapMarkers(map, layers, siteDataStore) {
             // Update Icon & Tooltip
             const newIconInstance = getMarkerIcon(markerColor, iconAwesome, useAwesomeSvgFactory);
             if (marker.options.icon !== newIconInstance) marker.setIcon(newIconInstance);
-            const tooltipText = `${site.name || 'N/A'} (${statusText})`;
+            const tooltipText = `${site.name || 'N/A'}`;
             if (marker.getTooltip()) { if(marker.getTooltip().getContent() !== tooltipText) marker.setTooltipContent(tooltipText); } else { marker.bindTooltip(tooltipText); }
 
             // Update Layer Membership & Visibility
