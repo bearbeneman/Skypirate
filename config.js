@@ -71,7 +71,7 @@ export const DEFAULT_MAP_ZOOM = 6;
 export const GEOLOCATION_ZOOM = 10; // Zoom level when user location is found
 export const SEARCH_RESULT_ZOOM_LEVEL = 13;
 export const SEARCH_FLYTO_DURATION = 4;
-export const SHOW_KK7_LAYERS_DEFAULT = false;
+export const SHOW_KK7_LAYERS_DEFAULT = true;
 
 export const BASE_MAP_OPTIONS = {
     MAPTILER_VECTOR: false,      // Default: Terrain Vector (MapTiler) - Recommended Default
